@@ -16,7 +16,14 @@ int main(int argc, char* args[])
 
 	//Create a window, note we have to free the pointer returned using the DestroyWindow Function
 	//https://wiki.libsdl.org/SDL_CreateWindow
-	SDL_Window* window = SDL_CreateWindow("SDL2 Window", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_SHOWN );
+	SDL_Window* window = SDL_CreateWindow(
+		"My first window",
+		SDL_WINDOWPOS_UNDEFINED,
+		SDL_WINDOWPOS_UNDEFINED,
+		800,
+		600,
+		SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_BORDERLESS
+	);
 	//Checks to see if the window has been created, the pointer will have a value of some kind
 	if (window == nullptr)
 	{
@@ -65,7 +72,7 @@ int main(int argc, char* args[])
 		//Fill the surface with black
 		//https://wiki.libsdl.org/SDL_FillRect
 		//https://wiki.libsdl.org/SDL_MapRGB
-		SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0, 0, 0));
+		SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0, 255, 0));
 
 		//Update the surface on the screen
 		//https://wiki.libsdl.org/SDL_UpdateWindowSurface

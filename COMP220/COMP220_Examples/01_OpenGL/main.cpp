@@ -169,9 +169,9 @@ int main(int argc, char* args[])
 
 	//An array of 3 vectors which represents 3 vertices
 	static const GLfloat g_vertex_buffer_data[] = {
-		-1.0f, -1.0f, 0.0f,
-		1.0f, -1.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,
+		-0.3f, -0.3f, 0.0f,
+		0.3f, -0.3f, 0.0f,
+		0.0f, 0.3f, 0.0f,
 	};
 
 	//This will identify our vertex buffer
@@ -186,8 +186,15 @@ int main(int argc, char* args[])
 	// Create and compile our GLSL program from the shaders
 	GLint programID = LoadShaders("vert.glsl", "frag.glsl");
 
-	GLuint location = glGetUniformLocation(programID, "myVariable");
-	glUniform3f(location, 1, 1, 1);
+	// links frag colour
+	GLuint location = glGetUniformLocation(programID, "fragColour");
+	// sets frag colour
+	GLfloat fragColour[] = { 1.0f,1.0f,1.0f,1.0f};
+
+	GLint currentTimeLocation = glGetUniformLocation(programID, "time");
+
+	int lastTicks = SDL_GetTicks();
+	int currentTicks = SDL_GetTicks();
 
 	//Event loop, we will loop until running is set to false, usually if escape has been pressed or window is closed
 	bool running = true;
@@ -218,13 +225,24 @@ int main(int argc, char* args[])
 				}
 			}
 		}
+		// Gets current tick
+		currentTicks = SDL_GetTicks();
+
+		float deltaTime = (float)(currentTicks - lastTicks) / 1000.0f;
 
 		//Update Game and Draw with OpenGL!
-		glClearColor(0.0, 0.7, 0.0, 1.0);
+		glClearColor(0.1, 0.1, 0.1, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		// Use our shader
 		glUseProgram(programID);
+
+		// changes the colour of frag shader
+		fragColour[2]= (currentTimeLocation, (float)(currentTicks) / 10000.0f);
+		printf("%f\n", fragColour[2]);
+
+		glUniform4fv(location, 1, fragColour);
+		glUniform1f(currentTimeLocation, (float)(currentTicks) / 1000.0f);
 
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
@@ -259,3 +277,7 @@ int main(int argc, char* args[])
 
 	return 0;
 }
+
+
+// copy ..\..\..\Libraries\SDL2-2.0.6\lib\x64\SDL2.dll $(OutDir)SDL2.dll
+// copy ..\..\..\Libraries\glew - 2.1.0\bin\Release\x64.glew32.dll $(OutDir)glew32.dll

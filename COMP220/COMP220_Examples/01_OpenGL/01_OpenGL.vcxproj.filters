@@ -25,7 +25,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="vert.glsl" />
     <None Include="frag.glsl" />
+    <None Include="vert.glsl" />
   </ItemGroup>
 </Project>

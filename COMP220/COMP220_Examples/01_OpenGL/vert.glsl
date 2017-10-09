@@ -2,11 +2,15 @@
 
 layout(location = 0) in vec3 vertexPosition;
 
-uniform vec3 myVariable;
+uniform float time=0.0f;
 
 void main()
 {
-// gl_Position=vec4(vertexPosition, 1.0)
-gl_Position.xyz = myVariable;
-gl_Position.w = 1.0;
+	vec3 newVertexPosition=vertexPosition;
+
+	newVertexPosition.xy*=sin(time);
+	newVertexPosition.x+=cos(time);
+	//newVertexPosition.x*=tan(time);
+
+	gl_Position=vec4(newVertexPosition,1.0);
 }

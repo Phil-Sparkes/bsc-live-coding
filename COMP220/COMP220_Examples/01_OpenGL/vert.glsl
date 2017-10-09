@@ -8,9 +8,9 @@ void main()
 {
 	vec3 newVertexPosition=vertexPosition;
 
-	newVertexPosition.xy*=sin(time);
+	newVertexPosition.xyz*=sin(time);
 	newVertexPosition.x+=cos(time);
-	//newVertexPosition.x*=tan(time);
+	newVertexPosition.z*=tan(time);
 
 	gl_Position=vec4(newVertexPosition,1.0);
 }

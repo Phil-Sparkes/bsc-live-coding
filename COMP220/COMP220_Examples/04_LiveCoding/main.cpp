@@ -184,14 +184,14 @@ int main(int argc, char* args[])
 	glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
 
 
-	vec3 trianglePosition = vec3(0.0f, 0.5f, 0.0f);
+	vec3 trianglePosition = vec3(1.0f, -0.5f, 1.0f);
 	mat4 translationMatrix = translate(vec3(trianglePosition));
 
-	vec3 triangleRotation = vec3(0.0f, 0.0f, 20.0f);
+	vec3 triangleRotation = vec3(10.0f, 10.0f, 20.0f);
 	mat4 rotationXMatrix = rotate(triangleRotation.x, vec3(1.0f, 0.0f, 0.0f));
 	mat4 rotationYMatrix = rotate(triangleRotation.y, vec3(0.0f, 1.0f, 0.0f));
-	mat4 rotationZMatrix = rotate(triangleRotation.z, vec3(0.0f, 0.0f, 2.0f));
-	mat4 rotationMatrix = rotationZMatrix*rotationYMatrix*rotationXMatrix;
+	mat4 rotationZMatrix = rotate(triangleRotation.z, vec3(0.0f, 0.0f, 1.0f));
+	mat4 rotationMatrix = (rotationZMatrix*rotationYMatrix*rotationXMatrix);
 
 	mat4 modelMatrix = translationMatrix*rotationMatrix;
 

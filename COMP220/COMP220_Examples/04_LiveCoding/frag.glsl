@@ -8,7 +8,8 @@ out vec4 colour;
 
 void main()
 {
-colour.y+=sin(time);
-colour.x+=cos(time);
-//colour = fragColour;
+    //add rand below
+	//colour=vec4(0.0f,0.0f,0.0f,1.0f);
+	colour.r+=sin(time);
+	colour.g+=cos(time);
 }

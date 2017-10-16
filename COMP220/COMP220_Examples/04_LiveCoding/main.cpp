@@ -118,7 +118,7 @@ int main(int argc, char* args[])
 		SDL_WINDOWPOS_UNDEFINED,
 		SDL_WINDOWPOS_UNDEFINED,
 		800,
-		600,
+		800,
 		SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL
 	);
 	//Checks to see if the window has been created, the pointer will have a value of some kind
@@ -169,9 +169,42 @@ int main(int argc, char* args[])
 
 	//An array of 3 vectors which represents 3 vertices
 	static const GLfloat g_vertex_buffer_data[] = {
-		-0.3f, -0.3f, 0.0f,
-		0.3f, -0.3f, 0.0f,
-		0.0f, 0.3f, 0.0f,
+		-1.0f,-1.0f,-1.0f, // triangle 1 : begin
+		-1.0f,-1.0f, 1.0f,
+		-1.0f, 1.0f, 1.0f, // triangle 1 : end
+		1.0f, 1.0f,-1.0f, // triangle 2 : begin
+		-1.0f,-1.0f,-1.0f,
+		-1.0f, 1.0f,-1.0f, // triangle 2 : end
+		1.0f,-1.0f, 1.0f,
+		-1.0f,-1.0f,-1.0f,
+		1.0f,-1.0f,-1.0f,
+		1.0f, 1.0f,-1.0f,
+		1.0f,-1.0f,-1.0f,
+		-1.0f,-1.0f,-1.0f,
+		-1.0f,-1.0f,-1.0f,
+		-1.0f, 1.0f, 1.0f,
+		-1.0f, 1.0f,-1.0f,
+		1.0f,-1.0f, 1.0f,
+		-1.0f,-1.0f, 1.0f,
+		-1.0f,-1.0f,-1.0f,
+		-1.0f, 1.0f, 1.0f,
+		-1.0f,-1.0f, 1.0f,
+		1.0f,-1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f,-1.0f,-1.0f,
+		1.0f, 1.0f,-1.0f,
+		1.0f,-1.0f,-1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f,-1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f,-1.0f,
+		-1.0f, 1.0f,-1.0f,
+		1.0f, 1.0f, 1.0f,
+		-1.0f, 1.0f,-1.0f,
+		-1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		-1.0f, 1.0f, 1.0f,
+		1.0f,-1.0f, 1.0f
 	};
 
 	//This will identify our vertex buffer
@@ -184,16 +217,27 @@ int main(int argc, char* args[])
 	glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
 
 
-	vec3 trianglePosition = vec3(1.0f, -0.5f, 1.0f);
+	vec3 trianglePosition = vec3(0.0f, 0.0f, 0.0f);
 	mat4 translationMatrix = translate(vec3(trianglePosition));
 
-	vec3 triangleRotation = vec3(10.0f, 10.0f, 20.0f);
+	vec3 triangleRotation = vec3(0.0f, 20.0f, 20.0f);
 	mat4 rotationXMatrix = rotate(triangleRotation.x, vec3(1.0f, 0.0f, 0.0f));
 	mat4 rotationYMatrix = rotate(triangleRotation.y, vec3(0.0f, 1.0f, 0.0f));
 	mat4 rotationZMatrix = rotate(triangleRotation.z, vec3(0.0f, 0.0f, 1.0f));
 	mat4 rotationMatrix = (rotationZMatrix*rotationYMatrix*rotationXMatrix);
 
 	mat4 modelMatrix = translationMatrix*rotationMatrix;
+
+	vec3 cameraPosition = vec3(5.0f, -2.5f, -5.0f);
+	vec3 cameraTarget = vec3(0.0f, 0.0f, 0.0f);
+	vec3 cameraUp = vec3(0.0f, 1.0f, 0.0f);
+
+	mat4 viewMatrix = lookAt(cameraPosition, cameraTarget, cameraUp);
+
+	mat4 projectionMatrix = perspective(radians(90.0f), float(800 / 600), 0.1f, 100.0f);
+
+
+
 
 	// Create and compile our GLSL program from the shaders
 	GLint programID = LoadShaders("vert.glsl", "frag.glsl");
@@ -206,6 +250,8 @@ int main(int argc, char* args[])
 	GLint currentTimeLocation = glGetUniformLocation(programID, "time");
 
 	GLint modelMatrixLocation = glGetUniformLocation(programID, "modelMatrix");
+	GLint viewMatrixLocation = glGetUniformLocation(programID, "viewMatrix");
+	GLint projectionMatrixLocation = glGetUniformLocation(programID, "projectionMatrix");
 
 	int lastTicks = SDL_GetTicks();
 	int currentTicks = SDL_GetTicks();
@@ -259,7 +305,9 @@ int main(int argc, char* args[])
 
 		glUniform4fv(location, 1, fragColour);
 		glUniform1f(currentTimeLocation, (float)(currentTicks) / 1000.0f);
-		glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, value_ptr(translationMatrix));
+		glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, value_ptr(modelMatrix));
+		glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, value_ptr(viewMatrix));
+		glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, value_ptr(projectionMatrix));
 
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
@@ -272,7 +320,7 @@ int main(int argc, char* args[])
 			(void*)0           //array buffer offset
 		);
 		//Draw the triangle
-		glDrawArrays(GL_TRIANGLES, 0, 3); //Starting from vertex 0; 3 vertices total -> 1 triangle
+		glDrawArrays(GL_TRIANGLES, 0, 36); //Starting from vertex 0; 3 vertices total -> 1 triangle
 		glDisableVertexAttribArray(0);
 
 		//Updates display
@@ -296,5 +344,5 @@ int main(int argc, char* args[])
 }
 
 
-// copy ..\..\..\Libraries\SDL2-2.0.6\lib\x64\SDL2.dll $(OutDir)SDL2.dll
-// copy ..\..\..\Libraries\glew - 2.1.0\bin\Release\x64.glew32.dll $(OutDir)glew32.dll
+//copy ..\..\..\Libraries\SDL2 - 2.0.6\lib\x64\SDL2.dll "$(OutDir)SDL2.dll"
+//copy ..\..\..\Libraries\glew - 2.1.0\bin\Release\x64.glew32.dll "$(OutDir)glew32.dll"

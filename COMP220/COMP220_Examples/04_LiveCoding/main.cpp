@@ -75,10 +75,10 @@ int main(int argc, char* args[])
 
 	Vertex triangleVertices[] =
 	{
-		{ -0.5f,-0.5f,0.0f,1.0f,0.0f,0.0f,1.0f },
-		{ 0.5f,-0.5f,0.0f,0.0f,1.0f,0.0f,1.0f },
-		{ 0.5f,0.5f,0.0f,0.0f,0.0f,1.0f,1.0f },
-		{ -0.5f,0.5f,0.0f,0.0f,0.0f,1.0f,1.0f }
+		{ -0.5f,-0.5f,0.0f,1.0f,0.0f,0.0f,1.0f,0.0f,0.0f },
+		{ 0.5f,-0.5f,0.0f,0.0f,1.0f,0.0f,1.0f,1.0f,0.0f },
+		{ 0.5f,0.5f,0.0f,0.0f,0.0f,1.0f,1.0f,1.0f,1.0f },
+		{ -0.5f,0.5f,0.0f,0.0f,0.0f,1.0f,1.0f,0.0f,1.0f }
 	};
 
 	unsigned int triangleIndices[] =
@@ -94,7 +94,7 @@ int main(int argc, char* args[])
 	//The following commands will talk about our 'vertexbuffer' buffer
 	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 	//Give our vertices to OpenGL
-	glBufferData(GL_ARRAY_BUFFER, 4*sizeof(Vertex), triangleIndices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, 4*sizeof(Vertex), triangleVertices, GL_STATIC_DRAW);
 
 	GLuint elementbuffer;
 	glGenBuffers(1, &elementbuffer);
@@ -106,7 +106,7 @@ int main(int argc, char* args[])
 
 	vec3 trianglePosition = vec3(0.0f, 0.0f, 0.0f);
 	vec3 triangleScale = vec3(1.0f, 1.0f, 1.0f);
-	vec3 triangleRotation = vec3(0.0f, 20.0f, 20.0f);
+	vec3 triangleRotation = vec3(0.0f, 0.0f, 0.0f);
 
 	mat4 translationMatrix = translate(trianglePosition);
 	mat4 scaleMatrix = scale(triangleScale);
@@ -114,7 +114,7 @@ int main(int argc, char* args[])
 
 	mat4 modelMatrix = translationMatrix*rotationMatrix*scaleMatrix;
 
-	vec3 cameraPosition = vec3(-2.0f, -10.0f, -5.0f);
+	vec3 cameraPosition = vec3(0.0f, 0.0f, -5.0f);
 	vec3 cameraTarget = vec3(0.0f, 0.0f, 0.0f);
 	vec3 cameraUp = vec3(0.0f, 1.0f, 0.0f);
 
@@ -123,7 +123,7 @@ int main(int argc, char* args[])
 	mat4 projectionMatrix = perspective(radians(90.0f), float(800 / 600), 0.1f, 100.0f);
 
 	// Create and compile our GLSL program from the shaders
-	GLint programID = LoadShaders("vert.glsl", "frag.glsl");
+	GLint programID = LoadShaders("textureVert.glsl", "textureFrag.glsl");
 
 	// sets frag colour
 	static const GLfloat fragColour[] = { 1.0f,1.0f,1.0f,1.0f };
@@ -134,6 +134,7 @@ int main(int argc, char* args[])
 	GLint modelMatrixLocation = glGetUniformLocation(programID, "modelMatrix");
 	GLint viewMatrixLocation = glGetUniformLocation(programID, "viewMatrix");
 	GLint projectionMatrixLocation = glGetUniformLocation(programID, "projectionMatrix");
+	GLint textureLocation = glGetUniformLocation(programID, "baseTexture");
 
 	int lastTicks = SDL_GetTicks();
 	int currentTicks = SDL_GetTicks();
@@ -179,6 +180,15 @@ int main(int argc, char* args[])
 		// changes the colour of frag shader
 		//fragColour[2] = (currentTimeLocation, (float)(currentTicks) / 10000.0f);
 
+
+		//Buffers
+		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, textureID);
+
+
 		// Use our shader
 		glUseProgram(programID);
 
@@ -187,12 +197,7 @@ int main(int argc, char* args[])
 		glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, value_ptr(modelMatrix));
 		glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, value_ptr(viewMatrix));
 		glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, value_ptr(projectionMatrix));
-
-		//Buffers
-		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
-
-
+		glUniform1i(textureLocation, 0);
 
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(
@@ -207,8 +212,10 @@ int main(int argc, char* args[])
 		glEnableVertexAttribArray(1);
 		glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3 * sizeof(float)));
 
-		//glEnableVertexAttribArray(2);
-		//glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(7 * sizeof(float)));
+		//glDisableVertexAttribArray(2);
+
+		glEnableVertexAttribArray(2);
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(7 * sizeof(float)));
 
 
 		//Draw the triangle

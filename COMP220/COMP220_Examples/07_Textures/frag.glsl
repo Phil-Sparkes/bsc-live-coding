@@ -9,7 +9,7 @@ out vec4 colour;
 void main()
 {
     //add rand below
-	colour=vec4(0.0f,0.0f,0.0f,1.0f);
+	//colour=vec4(0.0f,0.0f,0.0f,1.0f);
 	colour.r+=sin(time);
 	colour.g+=cos(time);
 }

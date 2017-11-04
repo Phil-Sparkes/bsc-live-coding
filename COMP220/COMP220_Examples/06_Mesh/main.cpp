@@ -69,16 +69,12 @@ int main(int argc, char* args[])
 		return 1;
 	}
 
-
-
-	//unsigned int numberOfVerts = 0;
-	//unsigned int numberOfIndices = 0;
-	//loadModelFromFile("Tank1.FBX", vertexbuffer, elementbuffer, numberOfVerts, numberOfIndices);
-
 	std::vector<Mesh*> meshes;
 	loadMeshesFromFile("Tank1.FBX", meshes);
-
 	GLuint textureID = loadTextureFromFile("Tank1DF.png");
+
+	loadMeshesFromFile("cube.nff", meshes);
+	GLuint textureID2 = loadTextureFromFile("crate.jpg");
 
 	vec3 trianglePosition = vec3(0.0f, 0.0f, 0.0f);
 	vec3 triangleScale = vec3(1.0f, 1.0f, 1.0f);
@@ -88,14 +84,14 @@ int main(int argc, char* args[])
 	mat4 scaleMatrix = scale(triangleScale);
 	mat4 rotationMatrix = rotate(triangleRotation.x, vec3(1.0f, 0.0f, 0.0f))*rotate(triangleRotation.y, vec3(0.0f, 1.0f, 0.0f))*rotate(triangleRotation.z, vec3(0.0f, 0.0f, 1.0f));
 
-	mat4 modelMatrix = translationMatrix*rotationMatrix*scaleMatrix;
-
-	vec3 cameraPosition = vec3(0.0f, 5.0f, -5.0f);
+	vec3 cameraPosition = vec3(0.0f, 0.0f, -5.0f);
 	vec3 cameraTarget = vec3(0.0f, 0.0f, 0.0f);
 	vec3 cameraUp = vec3(0.0f, 1.0f, 0.0f);
+	vec3 cameraDirection = vec3(0.0f, 0.0f, 0.0f);
+	float cameraDistance = 5.0;
 
 	mat4 viewMatrix = lookAt(cameraPosition, cameraTarget, cameraUp);
-
+	mat4 modelMatrix = translationMatrix*rotationMatrix*scaleMatrix;
 	mat4 projectionMatrix = perspective(radians(90.0f), float(800 / 600), 0.1f, 100.0f);
 
 	// Create and compile our GLSL program from the shaders
@@ -116,6 +112,8 @@ int main(int argc, char* args[])
 	int lastTicks = SDL_GetTicks();
 	int currentTicks = SDL_GetTicks();
 
+	SDL_SetRelativeMouseMode(SDL_TRUE);
+
 	//Event loop, we will loop until running is set to false, usually if escape has been pressed or window is closed
 	bool running = true;
 	//SDL Event structure, this will be checked in the while loop
@@ -134,6 +132,21 @@ int main(int argc, char* args[])
 				running = false;
 				break;
 				//KEYDOWN Message, called when a key has been pressed down
+
+			case SDL_MOUSEMOTION:
+
+				cameraDirection = normalize(cameraTarget - cameraPosition);
+		
+				cameraDirection.x -= (float (ev.motion.xrel) /100);
+				cameraDirection.y -= (float(ev.motion.yrel) /100);
+
+				//printf("%f , %f, %f  \n", cameraDirection.x, cameraDirection.y, cameraDirection.z);
+
+				// distance
+				cameraTarget = (cameraPosition + (cameraDirection * 5.0f));
+				break;
+
+
 			case SDL_KEYDOWN:
 				//Check the actual key code of the key that has been pressed
 				switch (ev.key.keysym.sym)
@@ -142,9 +155,25 @@ int main(int argc, char* args[])
 				case SDLK_ESCAPE:
 					running = false;
 					break;
+				case SDLK_RIGHT:
+					cameraPosition -= cross(cameraUp, cameraDirection);
+					break;
+				case SDLK_LEFT:
+					cameraPosition += cross(cameraUp, cameraDirection);
+					break;
+				case SDLK_UP:
+					cameraPosition += (cameraDirection * 0.5f);
+					break;
+				case SDLK_DOWN:
+					cameraPosition -= (cameraDirection * 0.5f);
+					break;
 				}
+				cameraTarget = (cameraPosition + (cameraDirection * 5.0f));
 			}
 		}
+
+		mat4 viewMatrix = lookAt(cameraPosition, cameraTarget, cameraUp);
+
 		// Gets current tick
 		currentTicks = SDL_GetTicks();
 
@@ -153,12 +182,6 @@ int main(int argc, char* args[])
 		//Update Game and Draw with OpenGL!
 		glClearColor(0.1, 0.1, 0.1, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		// changes the colour of frag shader
-		//fragColour[2] = (currentTimeLocation, (float)(currentTicks) / 10000.0f);
-
-
-
 
 
 		glActiveTexture(GL_TEXTURE0);
@@ -184,6 +207,8 @@ int main(int argc, char* args[])
 		SDL_GL_SwapWindow(window);
 	}
 
+
+	//out of loop
 	auto iter = meshes.begin();
 	while (iter != meshes.end())
 	{

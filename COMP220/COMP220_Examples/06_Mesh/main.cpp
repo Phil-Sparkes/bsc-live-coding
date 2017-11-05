@@ -69,13 +69,16 @@ int main(int argc, char* args[])
 		return 1;
 	}
 
+	// load mesh
 	std::vector<Mesh*> meshes;
 	loadMeshesFromFile("Tank1.FBX", meshes);
+	// load texture
 	GLuint textureID = loadTextureFromFile("Tank1DF.png");
 
 	loadMeshesFromFile("cube.nff", meshes);
 	GLuint textureID2 = loadTextureFromFile("crate.jpg");
 
+	// modifiers
 	vec3 trianglePosition = vec3(0.0f, 0.0f, 0.0f);
 	vec3 triangleScale = vec3(1.0f, 1.0f, 1.0f);
 	vec3 triangleRotation = vec3(0.0f, 0.0f, 0.0f);
@@ -84,6 +87,7 @@ int main(int argc, char* args[])
 	mat4 scaleMatrix = scale(triangleScale);
 	mat4 rotationMatrix = rotate(triangleRotation.x, vec3(1.0f, 0.0f, 0.0f))*rotate(triangleRotation.y, vec3(0.0f, 1.0f, 0.0f))*rotate(triangleRotation.z, vec3(0.0f, 0.0f, 1.0f));
 
+	// Camera set up
 	vec3 cameraPosition = vec3(0.0f, 0.0f, -5.0f);
 	vec3 cameraTarget = vec3(0.0f, 0.0f, 0.0f);
 	vec3 cameraUp = vec3(0.0f, 1.0f, 0.0f);
@@ -134,15 +138,16 @@ int main(int argc, char* args[])
 				//KEYDOWN Message, called when a key has been pressed down
 
 			case SDL_MOUSEMOTION:
-
+				//gets camera rotation
 				cameraDirection = normalize(cameraTarget - cameraPosition);
-		
+				
+				//Camera changes on Mouse movement
 				cameraDirection.x -= (float (ev.motion.xrel) /100);
 				cameraDirection.y -= (float(ev.motion.yrel) /100);
 
 				//printf("%f , %f, %f  \n", cameraDirection.x, cameraDirection.y, cameraDirection.z);
 
-				// distance
+				// adds distance
 				cameraTarget = (cameraPosition + (cameraDirection * 5.0f));
 				break;
 
@@ -168,10 +173,11 @@ int main(int argc, char* args[])
 					cameraPosition -= (cameraDirection * 0.5f);
 					break;
 				}
+				//updates camera
 				cameraTarget = (cameraPosition + (cameraDirection * 5.0f));
 			}
 		}
-
+		//updates view matrix
 		mat4 viewMatrix = lookAt(cameraPosition, cameraTarget, cameraUp);
 
 		// Gets current tick
@@ -183,7 +189,7 @@ int main(int argc, char* args[])
 		glClearColor(0.1, 0.1, 0.1, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
+		//bind texture
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, textureID);
 
@@ -208,7 +214,7 @@ int main(int argc, char* args[])
 	}
 
 
-	//out of loop
+	//loops through meshes and deletes all inside
 	auto iter = meshes.begin();
 	while (iter != meshes.end())
 	{

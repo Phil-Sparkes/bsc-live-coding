@@ -13,7 +13,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "04_LiveCoding", "07_Texture
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "06_Mesh", "06_Mesh\06_Mesh.vcxproj", "{DAB9692D-AA5B-422A-979F-E95349646371}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "10_Reflectance", "10_Reflectance\10_Reflectance.vcxproj", "{E705C485-0A5E-4AF0-AFF4-DA074025D3EB}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "12_PostProcessing", "10_Reflectance\10_Reflectance.vcxproj", "{E705C485-0A5E-4AF0-AFF4-DA074025D3EB}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "10_Reflectance", "12_PostProcessing\12_PostProcessing.vcxproj", "{D141FCDC-E62C-45BB-B721-E6C4FD2C2B63}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -71,6 +73,14 @@ Global
 		{E705C485-0A5E-4AF0-AFF4-DA074025D3EB}.Release|x64.Build.0 = Release|x64
 		{E705C485-0A5E-4AF0-AFF4-DA074025D3EB}.Release|x86.ActiveCfg = Release|Win32
 		{E705C485-0A5E-4AF0-AFF4-DA074025D3EB}.Release|x86.Build.0 = Release|Win32
+		{D141FCDC-E62C-45BB-B721-E6C4FD2C2B63}.Debug|x64.ActiveCfg = Debug|x64
+		{D141FCDC-E62C-45BB-B721-E6C4FD2C2B63}.Debug|x64.Build.0 = Debug|x64
+		{D141FCDC-E62C-45BB-B721-E6C4FD2C2B63}.Debug|x86.ActiveCfg = Debug|Win32
+		{D141FCDC-E62C-45BB-B721-E6C4FD2C2B63}.Debug|x86.Build.0 = Debug|Win32
+		{D141FCDC-E62C-45BB-B721-E6C4FD2C2B63}.Release|x64.ActiveCfg = Release|x64
+		{D141FCDC-E62C-45BB-B721-E6C4FD2C2B63}.Release|x64.Build.0 = Release|x64
+		{D141FCDC-E62C-45BB-B721-E6C4FD2C2B63}.Release|x86.ActiveCfg = Release|Win32
+		{D141FCDC-E62C-45BB-B721-E6C4FD2C2B63}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

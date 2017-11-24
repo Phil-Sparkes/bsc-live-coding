@@ -23,7 +23,7 @@
     <ProjectGuid>{E705C485-0A5E-4AF0-AFF4-DA074025D3EB}</ProjectGuid>
     <RootNamespace>My0_SDL_Window</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
-    <ProjectName>10_Reflectance</ProjectName>
+    <ProjectName>12_PostProcessing</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -151,6 +151,9 @@
     <None Include="cube.nff" />
     <None Include="lightingFrag.glsl" />
     <None Include="lightingVert.glsl" />
+    <None Include="passThroughVert.glsl" />
+    <None Include="postBlackAndWhite.glsl" />
+    <None Include="postTextureFrag.glsl" />
     <None Include="textureFrag.glsl" />
     <None Include="textureVert.glsl" />
   </ItemGroup>

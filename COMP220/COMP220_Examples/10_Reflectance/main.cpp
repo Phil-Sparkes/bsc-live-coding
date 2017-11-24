@@ -96,7 +96,7 @@ int main(int argc, char* args[])
 
 	mat4 viewMatrix = lookAt(cameraPosition, cameraTarget, cameraUp);
 	mat4 modelMatrix = translationMatrix*rotationMatrix*scaleMatrix;
-	mat4 projectionMatrix = perspective(radians(90.0f), float(800 / 600), 0.1f, 100.0f);
+	mat4 projectionMatrix = perspective(radians(90.0f), float(800 / 800), 0.1f, 100.0f);
 
 	// Light
 	vec4 ambientLightColour = vec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -109,6 +109,52 @@ int main(int argc, char* args[])
 	vec4 diffuseMaterialColour = vec4(0.6f, 0.6f, 0.6f, 1.0f);
 	vec4 specularMaterialColour = vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	float specularPower = 25.0f;
+
+	// Colour Buffer Texture
+	GLuint colourBufferID = createTexture(800, 800);
+
+	// Create Depth Buffer
+	GLuint depthRenderBufferID;
+	glGenRenderbuffers(1, &depthRenderBufferID);
+	glBindRenderbuffer(GL_RENDERBUFFER, depthRenderBufferID);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, 800, 800);
+
+	// Create framebuffer
+	GLuint frameBufferID;
+	glGenFramebuffers(1, &frameBufferID);
+	glBindFramebuffer(GL_FRAMEBUFFER, frameBufferID);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthRenderBufferID); // attach buffer
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, colourBufferID,0);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Unable to create frame buffer for post processing", "Frame Buffer Error", NULL);
+	}
+
+	// Create screen aligned quad
+	GLfloat screenVerts[] =
+	{
+		-1, -1,
+		1, -1,
+		-1, 1,
+		1, 1
+	};
+
+	GLuint screenQuadVBOID;
+	glGenBuffers(1, &screenQuadVBOID);
+	glBindBuffer(GL_ARRAY_BUFFER, screenQuadVBOID);
+	glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(GLfloat), screenVerts, GL_STATIC_DRAW);
+
+	GLuint screenVAO;
+	glGenVertexArrays(1, &screenVAO);
+	glBindVertexArray(screenVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, screenQuadVBOID);
+
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+
+	GLuint postProcessingProgramID = LoadShaders("passThroughVert.glsl", "postBlackAndWhite.glsl");
+	GLint texture0Location = glGetUniformLocation(postProcessingProgramID, "texture0");
 
 	// Create and compile our GLSL program from the shaders
 	GLint programID = LoadShaders("lightingVert.glsl", "lightingFrag.glsl");
@@ -207,6 +253,9 @@ int main(int argc, char* args[])
 		currentTicks = SDL_GetTicks();
 
 		float deltaTime = (float)(currentTicks - lastTicks) / 1000.0f;
+		
+		glEnable(GL_DEPTH_TEST);
+		glBindFramebuffer(GL_FRAMEBUFFER, frameBufferID);
 
 		//Update Game and Draw with OpenGL!
 		glClearColor(0.1, 0.1, 0.1, 1.0);
@@ -244,6 +293,22 @@ int main(int argc, char* args[])
 		{
 			currentMesh->render();
 		}
+		
+		glDisable(GL_DEPTH_TEST);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glClearColor(0.1, 0.2, 0.1, 0.0);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		// Bind Post Processing Shaders
+		glUseProgram(postProcessingProgramID);
+
+		//Activate texture unit 0 for the colour buffer
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, colourBufferID);
+		glUniform1i(texture0Location, 0);
+
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
 
 		//Updates display
 		SDL_GL_SwapWindow(window);
@@ -267,6 +332,12 @@ int main(int argc, char* args[])
 	}
 	meshes.clear();
 
+	glDeleteProgram(postProcessingProgramID);
+	glDeleteVertexArrays(1, &screenVAO);
+	glDeleteBuffers(1, &screenQuadVBOID);
+	glDeleteFramebuffers(1, &frameBufferID);
+	glDeleteRenderbuffers(1, &depthRenderBufferID);
+	glDeleteTextures(1, &colourBufferID);
 
 	// Deletes the GLSL program created earlier
 	glDeleteProgram(programID);
@@ -285,7 +356,3 @@ int main(int argc, char* args[])
 
 	return 0;
 }
-
-//copy ..\..\..\Libraries\SDL2_image - 2.0.1\lib\x64\*.dll "$(OutDir)*.dll"
-//copy ..\..\..\Libraries\SDL2 - 2.0.6\lib\x64\SDL2.dll "$(OutDir)SDL2.dll"
-//copy ..\..\..\Libraries\glew - 2.1.0\bin\Release\x64.glew32.dll "$(OutDir)glew32.dll"

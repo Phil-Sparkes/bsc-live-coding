@@ -1,0 +1,10 @@
+﻿  main.cpp
+  btVoronoiSimplexSolver.cpp
+  btSphereShape.cpp
+  btMultiSphereShape.cpp
+  btPolyhedralConvexShape.cpp
+  btConvexShape.cpp
+  btConvexInternalShape.cpp
+  btCollisionShape.cpp
+  btConvexPolyhedron.cpp
+LINK : fatal error LNK1104: cannot open file '..\..\bin\LinearMath_vs2010_x64_debug.lib'

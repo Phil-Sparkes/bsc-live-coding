@@ -1,0 +1,10 @@
+﻿  vrSyncPlugin.cpp
+  PhysicsClient.cpp
+  PhysicsClientSharedMemory.cpp
+  PhysicsClientSharedMemory_C_API.cpp
+  PhysicsClientC_API.cpp
+  Win32SharedMemory.cpp
+  PosixSharedMemory.cpp
+  b3Clock.cpp
+  b3ResourcePath.cpp
+LINK : fatal error LNK1104: cannot open file '..\..\bin\BulletFileLoader_vs2010_x64_debug.lib'

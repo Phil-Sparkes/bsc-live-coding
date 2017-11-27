@@ -1,0 +1,2 @@
+﻿  test_invdyn_jacobian.cpp
+LINK : fatal error LNK1104: cannot open file '..\..\bin\BulletInverseDynamicsUtils_vs2010_x64_debug.lib'

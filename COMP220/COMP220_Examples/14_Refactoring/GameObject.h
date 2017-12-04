@@ -17,27 +17,27 @@ public:
 		GameObject();
 	   ~GameObject();
 
-	   void setPosition(const glm::vec3& position)
+	   void setPosition(float xVal, float yVal, float zVal)
 	   {
-		   m_Position = position;
+		   m_Position = glm::vec3(xVal, yVal, zVal);
 	   };
 	   glm::vec3& getPosition()
 	   {
 		   return m_Position;
 	   };
 
-	   void setScale(const glm::vec3& scale)
+	   void setScale(float xVal, float yVal, float zVal)
 	   {
-		   m_Scale = scale;
+		   m_Scale = glm::vec3(xVal, yVal, zVal);
 	   };
 	   glm::vec3& getScale()
 	   {
 		   return m_Scale;
 	   };
 
-	   void setRotation(const glm::vec3& rotation)
+	   void setRotation(float xVal, float yVal, float zVal)
 	   {
-		   m_Rotation = rotation;
+		   m_Rotation = glm::vec3(xVal, yVal, zVal);
 	   };
 	   glm::vec3& getRotation()
 	   {

@@ -80,12 +80,14 @@ int main(int argc, char* args[])
 
 	*/
 
-	GameObject * armouredTank = new GameObject();
 
+	GameObject * armouredTank = new GameObject();
 	armouredTank->loadMesh("Tank1.FBX");
 	armouredTank->loadDiffuseMap("Tank1DF.png");
-	armouredTank->setPosition(glm::vec3(0.0f, 0.0f, 0.0f));;   //get rid of glm and just use floats
-	armouredTank->loadShaderProgram("lightingVert.glsl", "lightingFrag.glsl");
+	armouredTank->setPosition(0.0f, -3.0f, 0.0f); 
+	armouredTank->setRotation(0.0f, 0.7f, 0.0f);
+	armouredTank->loadShaderProgram("textureVert.glsl", "textureFrag.glsl");
+
 	/*
 	// modifiers
 	vec3 trianglePosition = vec3(0.0f, 0.0f, 0.0f);
@@ -244,10 +246,14 @@ int main(int argc, char* args[])
 				cameraDirection.x -= (float (ev.motion.xrel) /100);
 				cameraDirection.y -= (float(ev.motion.yrel) /100);
 
+				if (cameraDirection.y > 150.0f) cameraDirection.y = 150.0f; else if (cameraDirection.y < -150.0f) cameraDirection.y = -150.0f;
+
 				//printf("%f , %f, %f  \n", cameraDirection.x, cameraDirection.y, cameraDirection.z);
 
 				// adds distance
-				cameraTarget = (cameraPosition + (cameraDirection * 5.0f));
+				cameraTarget = (cameraPosition + (cameraDirection * cameraDistance));
+				//cameraTarget = cameraPosition + cameraDistance * vec3(cos(cameraDirection.x), tan(cameraDirection.y), sin(cameraDirection.x));
+				//printf("%f , %f, %f  \n", cameraTarget.x - cameraPosition.x, cameraTarget.y - cameraPosition.y, cameraTarget.z - cameraPosition.z);
 				break;
 
 
@@ -273,7 +279,8 @@ int main(int argc, char* args[])
 					break;
 				}
 				//updates camera
-				cameraTarget = (cameraPosition + (cameraDirection * 5.0f));
+				cameraTarget = (cameraPosition - (cameraDirection * cameraDistance));
+				//cameraTarget = cameraPosition + cameraDistance * vec3(cos(cameraDirection.x), tan(cameraDirection.y), sin(cameraDirection.x));
 			}
 		}
 		//updates view matrix

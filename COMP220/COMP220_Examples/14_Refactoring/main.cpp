@@ -68,18 +68,6 @@ int main(int argc, char* args[])
 
 		return 1;
 	}
-/*
-	// load mesh
-	std::vector<Mesh*> meshes;
-	loadMeshesFromFile("Tank1.FBX", meshes);
-	// load texture
-	GLuint textureID = loadTextureFromFile("Tank1DF.png");
-
-	loadMeshesFromFile("cube.nff", meshes);
-	GLuint textureID2 = loadTextureFromFile("crate.jpg");
-
-	*/
-
 
 	GameObject * armouredTank = new GameObject();
 	armouredTank->loadMesh("Tank1.FBX");
@@ -87,18 +75,6 @@ int main(int argc, char* args[])
 	armouredTank->setPosition(0.0f, -3.0f, 0.0f); 
 	armouredTank->setRotation(0.0f, 0.7f, 0.0f);
 	armouredTank->loadShaderProgram("textureVert.glsl", "textureFrag.glsl");
-
-	/*
-	// modifiers
-	vec3 trianglePosition = vec3(0.0f, 0.0f, 0.0f);
-	vec3 triangleScale = vec3(1.0f, 1.0f, 1.0f);
-	vec3 triangleRotation = vec3(0.0f, 0.0f, 0.0f);
-
-	mat4 translationMatrix = translate(trianglePosition);
-	mat4 scaleMatrix = scale(triangleScale);
-	mat4 rotationMatrix = rotate(triangleRotation.x, vec3(1.0f, 0.0f, 0.0f))*rotate(triangleRotation.y, vec3(0.0f, 1.0f, 0.0f))*rotate(triangleRotation.z, vec3(0.0f, 0.0f, 1.0f));
-
-	*/
 
 
 	// Camera set up
@@ -176,43 +152,6 @@ int main(int argc, char* args[])
 	// sets frag colour
 	static const GLfloat fragColour[] = { 1.0f,1.0f,1.0f,1.0f };
 	
-	// links 
-	/*
-	GLint location = glGetUniformLocation(programID, "fragColour");
-	GLint currentTimeLocation = glGetUniformLocation(programID, "time");
-	GLint modelMatrixLocation = glGetUniformLocation(programID, "modelMatrix");
-	GLint viewMatrixLocation = glGetUniformLocation(programID, "viewMatrix");
-	GLint projectionMatrixLocation = glGetUniformLocation(programID, "projectionMatrix");
-	GLint textureLocation = glGetUniformLocation(programID, "baseTexture");
-	GLint camerPositionLocation = glGetUniformLocation(programID, "cameraPosition");
-
-	GLint lightDirectionLocation = glGetUniformLocation(programID, "lightDirection");
-	GLint ambientLightColourLocation = glGetUniformLocation(programID, "ambientLightColour");
-	GLint diffuseLightColourLocation = glGetUniformLocation(programID, "diffuseLightColour");
-	GLint specularLightColourLocation = glGetUniformLocation(programID, "specularLightColour");
-
-	GLint ambientMaterialColourLocation = glGetUniformLocation(programID, "ambientMaterialColour");
-	GLint diffuseMaterialColourLocation = glGetUniformLocation(programID, "diffuseMaterialColour");
-	GLint specularMaterialColourLocation = glGetUniformLocation(programID, "diffuseMaterialColour");
-	GLint specularPowerLocation = glGetUniformLocation(programID, "specularPower");
-	*/
-
-	/////collision configuration contains default setup for memory, collision setup. Advanced users can create their own configuration.
-	//btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
-
-	/////use the default collision dispatcher. For parallel processing you can use a diffent dispatcher (see Extras/BulletMultiThreaded)
-	//btCollisionDispatcher* dispatcher = new btCollisionDispatcher(collisionConfiguration);
-
-	/////btDbvtBroadphase is a good general purpose broadphase. You can also try out btAxis3Sweep.
-	//btBroadphaseInterface* overlappingPairCache = new btDbvtBroadphase();
-
-	/////the default constraint solver. For parallel processing you can use a different solver (see Extras/BulletMultiThreaded)
-	//btSequentialImpulseConstraintSolver* solver = new btSequentialImpulseConstraintSolver;
-
-	//btDiscreteDynamicsWorld* dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
-
-	//dynamicsWorld->setGravity(btVector3(0, -10, 0));
-
 	glEnable(GL_DEPTH_TEST);
 	int lastTicks = SDL_GetTicks();
 	int currentTicks = SDL_GetTicks();
@@ -248,12 +187,8 @@ int main(int argc, char* args[])
 
 				if (cameraDirection.y > 150.0f) cameraDirection.y = 150.0f; else if (cameraDirection.y < -150.0f) cameraDirection.y = -150.0f;
 
-				//printf("%f , %f, %f  \n", cameraDirection.x, cameraDirection.y, cameraDirection.z);
-
 				// adds distance
 				cameraTarget = (cameraPosition + (cameraDirection * cameraDistance));
-				//cameraTarget = cameraPosition + cameraDistance * vec3(cos(cameraDirection.x), tan(cameraDirection.y), sin(cameraDirection.x));
-				//printf("%f , %f, %f  \n", cameraTarget.x - cameraPosition.x, cameraTarget.y - cameraPosition.y, cameraTarget.z - cameraPosition.z);
 				break;
 
 
@@ -279,8 +214,7 @@ int main(int argc, char* args[])
 					break;
 				}
 				//updates camera
-				cameraTarget = (cameraPosition - (cameraDirection * cameraDistance));
-				//cameraTarget = cameraPosition + cameraDistance * vec3(cos(cameraDirection.x), tan(cameraDirection.y), sin(cameraDirection.x));
+				cameraTarget = (cameraPosition + (cameraDirection * cameraDistance));
 			}
 		}
 		//updates view matrix
@@ -324,41 +258,6 @@ int main(int argc, char* args[])
 		glUniform4fv(specularLightColourLocation, 1, value_ptr(specularLightColour));
 
 		armouredTank->render();
-
-		/*
-		//bind texture
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, textureID);
-
-
-		// Use our shader
-		glUseProgram(programID);
-
-		glUniform4fv(location, 1, fragColour);
-		glUniform1f(currentTimeLocation, (float)(currentTicks) / 1000.0f);
-		glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, value_ptr(modelMatrix));
-		glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, value_ptr(viewMatrix));
-		glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, value_ptr(projectionMatrix));
-
-		glUniform3fv(camerPositionLocation, 1, value_ptr(cameraPosition));
-
-		glUniform1i(textureLocation, 0);
-
-		glUniform3fv(lightDirectionLocation, 1, value_ptr(lightDirection));
-		glUniform4fv(ambientLightColourLocation, 1, value_ptr(ambientLightColour));
-		glUniform4fv(diffuseLightColourLocation, 1, value_ptr(diffuseLightColour));
-		glUniform4fv(specularLightColourLocation, 1, value_ptr(specularLightColour));
-
-		glUniform4fv(ambientMaterialColourLocation, 1, value_ptr(ambientMaterialColour));
-		glUniform4fv(diffuseMaterialColourLocation, 1, value_ptr(diffuseMaterialColour));
-		glUniform4fv(specularMaterialColourLocation, 1, value_ptr(specularMaterialColour));
-		glUniform1f(specularPowerLocation, specularPower);
-
-		for (Mesh * currentMesh : meshes)
-		{
-			currentMesh->render();
-		}
-		*/
 		
 		glDisable(GL_DEPTH_TEST);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -395,35 +294,12 @@ int main(int argc, char* args[])
 	//delete collisionConfiguration;
 
 
-	//loops through meshes and deletes all inside
-	/*
-	auto iter = meshes.begin();
-	while (iter != meshes.end())
-	{
-		if ((*iter))
-		{
-			(*iter)->destroy();
-			delete (*iter);
-			iter = meshes.erase(iter);
-		}
-		else
-		{
-			iter++;
-		}
-	}
-	meshes.clear();
-	*/
-
 	glDeleteProgram(postProcessingProgramID);
 	glDeleteVertexArrays(1, &screenVAO);
 	glDeleteBuffers(1, &screenQuadVBOID);
 	glDeleteFramebuffers(1, &frameBufferID);
 	glDeleteRenderbuffers(1, &depthRenderBufferID);
 	glDeleteTextures(1, &colourBufferID);
-
-	// Deletes the GLSL program created earlier
-	//glDeleteProgram(programID);
-	//glDeleteTextures(1, &textureID);
 
 	if (armouredTank)
 	{

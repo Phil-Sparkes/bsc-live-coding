@@ -107,7 +107,11 @@
       <SubSystem>Console</SubSystem>
     </Link>
     <PostBuildEvent>
-      <Command>copy ..\..\..\Libraries\assimp\bin\assimp-vc140-mt.dll "$(OutDir)\assimp-vc140-mt.dll"</Command>
+      <Command>copy ..\..\..\Libraries\assimp\bin\assimp-vc140-mt.dll "$(OutDir)\assimp-vc140-mt.dll"
+copy ..\..\..\Libraries\SDL2_image-2.0.1\lib\x64\*.dll "$(OutDir)\*.dll"
+copy ..\..\..\Libraries\SDL2-2.0.6\lib\x64\SDL2.dll "$(OutDir)\SDL2.dll"
+copy ..\..\..\Libraries\glew-2.1.0\bin\Release\x64\glew32.dll "$(OutDir)\glew32.dll"
+</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

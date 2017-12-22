@@ -82,7 +82,11 @@ int main(int argc, char* args[])
 	vec3 cameraTarget = vec3(0.0f, 0.0f, 0.0f);
 	vec3 cameraUp = vec3(0.0f, 1.0f, 0.0f);
 	vec3 cameraDirection = vec3(0.0f, 0.0f, 0.0f);
-	float cameraDistance = 5.0;
+
+	float CameraX = 0.0f;
+	float CameraY = 0.0f;
+	float CameraDistance = (float)(cameraTarget - cameraPosition).length();
+	vec3 FPScameraPos = vec3(0.0f);
 
 	mat4 viewMatrix = lookAt(cameraPosition, cameraTarget, cameraUp);
 	//mat4 modelMatrix = translationMatrix*rotationMatrix*scaleMatrix;
@@ -162,6 +166,8 @@ int main(int argc, char* args[])
 	bool running = true;
 	//SDL Event structure, this will be checked in the while loop
 	SDL_Event ev;
+
+
 	while (running)
 	{
 		//Poll for the events which have happened in this frame
@@ -178,44 +184,47 @@ int main(int argc, char* args[])
 				//KEYDOWN Message, called when a key has been pressed down
 
 			case SDL_MOUSEMOTION:
-				//gets camera rotation
+
+				// Get Mouse Motion of X and Y
+				CameraX += ev.motion.xrel / 200.0f;
+				CameraY += -ev.motion.yrel / 200.0f;
+				// Limit camera range
+				if (CameraY > 150.0f) CameraY = 150.0f; else if (CameraY < -150.0f) CameraY = -150.0f;
+				// Calculate camera target using CameraX and CameraY
+				cameraTarget = cameraPosition + CameraDistance * vec3(cos(CameraX), tan(CameraY), sin(CameraX));
+				// Normalised camera direction
 				cameraDirection = normalize(cameraTarget - cameraPosition);
-				
-				//Camera changes on Mouse movement
-				cameraDirection.x -= (float (ev.motion.xrel) /100);
-				cameraDirection.y -= (float(ev.motion.yrel) /100);
 
-				if (cameraDirection.y > 150.0f) cameraDirection.y = 150.0f; else if (cameraDirection.y < -150.0f) cameraDirection.y = -150.0f;
-
-				// adds distance
-				cameraTarget = (cameraPosition + (cameraDirection * cameraDistance));
 				break;
-
 
 			case SDL_KEYDOWN:
 				//Check the actual key code of the key that has been pressed
 				switch (ev.key.keysym.sym)
 				{
-					//Escape key
+					// Keys
 				case SDLK_ESCAPE:
 					running = false;
 					break;
-				case SDLK_RIGHT:
-					cameraPosition -= cross(cameraUp, cameraDirection);
+
+				case SDLK_w:
+					FPScameraPos = cameraDirection * 0.2f;
 					break;
-				case SDLK_LEFT:
-					cameraPosition += cross(cameraUp, cameraDirection);
+				case SDLK_s:
+					FPScameraPos = -cameraDirection * 0.2f;
 					break;
-				case SDLK_UP:
-					cameraPosition += (cameraDirection * 0.5f);
+				case SDLK_a:
+					FPScameraPos = -cross(cameraDirection, cameraUp) * 0.5f;
 					break;
-				case SDLK_DOWN:
-					cameraPosition -= (cameraDirection * 0.5f);
+				case SDLK_d:
+					FPScameraPos = cross(cameraDirection, cameraUp) * 0.5f;
 					break;
+
+
 				}
-				//updates camera
-				cameraTarget = (cameraPosition + (cameraDirection * cameraDistance));
+				cameraPosition += FPScameraPos;
+				cameraTarget += FPScameraPos;
 			}
+
 		}
 		//updates view matrix
 		mat4 viewMatrix = lookAt(cameraPosition, cameraTarget, cameraUp);

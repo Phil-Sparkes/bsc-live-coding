@@ -79,7 +79,7 @@ int main(int argc, char* args[])
 	GLuint textureID2 = loadTextureFromFile("crate.jpg");
 
 	// modifiers
-	vec3 trianglePosition = vec3(0.0f, 0.0f, 0.0f);
+	vec3 trianglePosition = vec3(0.0f, 10.0f, 0.0f);
 	vec3 triangleScale = vec3(1.0f, 1.0f, 1.0f);
 	vec3 triangleRotation = vec3(0.0f, 0.0f, 0.0f);
 
@@ -88,7 +88,7 @@ int main(int argc, char* args[])
 	mat4 rotationMatrix = rotate(triangleRotation.x, vec3(1.0f, 0.0f, 0.0f))*rotate(triangleRotation.y, vec3(0.0f, 1.0f, 0.0f))*rotate(triangleRotation.z, vec3(0.0f, 0.0f, 1.0f));
 
 	// Camera set up
-	vec3 cameraPosition = vec3(0.0f, 0.0f, -5.0f);
+	vec3 cameraPosition = vec3(0.0f, 0.0f, -15.0f);
 	vec3 cameraTarget = vec3(0.0f, 0.0f, 0.0f);
 	vec3 cameraUp = vec3(0.0f, 1.0f, 0.0f);
 	vec3 cameraDirection = vec3(0.0f, 0.0f, 0.0f);
@@ -197,6 +197,38 @@ int main(int argc, char* args[])
 
 	dynamicsWorld->setGravity(btVector3(0, -10, 0));
 
+	btCollisionShape* groundShape = new btBoxShape(btVector3(btScalar(50.), btScalar(2.), btScalar(50.)));
+
+	btTransform groundTransform;
+	groundTransform.setIdentity();
+	groundTransform.setOrigin(btVector3(0, -10, 0));
+
+	btScalar mass(0.);
+	btVector3 localInertia(0, 0, 0);
+
+	btDefaultMotionState* myMotionState = new btDefaultMotionState(groundTransform);
+	btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, groundShape, localInertia);
+	btRigidBody* groundRigidBody = new btRigidBody(rbInfo);
+
+	dynamicsWorld->addRigidBody(groundRigidBody);
+
+	btCollisionShape* tankCollisionShape = new btBoxShape(btVector3(2, 2, 2));
+
+	btTransform tankTransform;
+	tankTransform.setIdentity();
+	tankTransform.setOrigin(btVector3(trianglePosition.x, trianglePosition.y, trianglePosition.z));
+	btVector3 tankInertia(0, 0, 0);
+	btScalar tankMass(1.f);
+
+	tankCollisionShape->calculateLocalInertia(tankMass, tankInertia);
+	
+	btDefaultMotionState* tankMotionState = new btDefaultMotionState(tankTransform);
+	btRigidBody::btRigidBodyConstructionInfo tankrbInfo(tankMass, tankMotionState, tankCollisionShape, tankInertia);
+	btRigidBody* tankRigidBody = new btRigidBody(tankrbInfo);
+
+	dynamicsWorld->addRigidBody(tankRigidBody);
+
+	
 
 	glEnable(GL_DEPTH_TEST);
 	int lastTicks = SDL_GetTicks();
@@ -271,6 +303,20 @@ int main(int argc, char* args[])
 
 		float deltaTime = (float)(currentTicks - lastTicks) / 1000.0f;
 		
+		dynamicsWorld->stepSimulation(1.f / 60.f, 10);
+
+		tankTransform=tankRigidBody->getWorldTransform();
+		btVector3 tankOrigin= tankTransform.getOrigin();
+		btQuaternion tankRotation = tankTransform.getRotation();
+
+		trianglePosition = vec3(tankOrigin.getX(), tankOrigin.getY(), tankOrigin.getZ());
+
+		translationMatrix = translate(trianglePosition);
+		scaleMatrix = scale(triangleScale);
+		rotationMatrix = rotate(triangleRotation.x, vec3(1.0f, 0.0f, 0.0f))*rotate(triangleRotation.y, vec3(0.0f, 1.0f, 0.0f))*rotate(triangleRotation.z, vec3(0.0f, 0.0f, 1.0f));
+
+		modelMatrix = translationMatrix*rotationMatrix*scaleMatrix;
+
 		glEnable(GL_DEPTH_TEST);
 		glBindFramebuffer(GL_FRAMEBUFFER, frameBufferID);
 
@@ -330,6 +376,18 @@ int main(int argc, char* args[])
 		//Updates display
 		SDL_GL_SwapWindow(window);
 	}
+
+	dynamicsWorld->removeRigidBody(tankRigidBody);
+	dynamicsWorld->removeRigidBody(groundRigidBody);
+
+	delete tankCollisionShape;
+	delete tankRigidBody->getMotionState();
+	delete tankRigidBody;
+
+	//delete ground
+	delete groundShape;
+	delete groundRigidBody->getMotionState();
+	delete groundRigidBody;
 
 	//delete dynamics world
 	delete dynamicsWorld;

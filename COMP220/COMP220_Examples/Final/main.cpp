@@ -74,24 +74,10 @@ int main(int argc, char* args[])
 	armouredTank->loadDiffuseMap("Tank1DF.png");
 	armouredTank->setPosition(0.0f, -3.0f, 0.0f); 
 	armouredTank->setRotation(0.0f, 0.7f, 0.0f);
-	armouredTank->loadShaderProgram("colourVert.glsl", "colourFrag.glsl");
+	armouredTank->loadShaderProgram("textureVert.glsl", "textureFrag.glsl");
 
-	Camera * theCamera = new Camera();
+	Camera * firstPersonCamera = new Camera();
 
-	//// Camera set up
-	//vec3 cameraPosition = vec3(0.0f, 0.0f, -5.0f);
-	//vec3 cameraTarget = vec3(0.0f, 0.0f, 0.0f);
-	//vec3 cameraUp = vec3(0.0f, 1.0f, 0.0f);
-	//vec3 cameraDirection = vec3(0.0f, 0.0f, 0.0f);
-
-	//float CameraX = 0.0f;
-	//float CameraY = 0.0f;
-	//float CameraDistance = (float)(cameraTarget - cameraPosition).length();
-	//vec3 FPScameraPos = vec3(0.0f);
-
-	//mat4 viewMatrix = lookAt(cameraPosition, cameraTarget, cameraUp);
-	////mat4 modelMatrix = translationMatrix*rotationMatrix*scaleMatrix;
-	//mat4 projectionMatrix = perspective(radians(90.0f), float(800 / 800), 0.1f, 100.0f);
 
 	// Light
 	vec4 ambientLightColour = vec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -185,17 +171,7 @@ int main(int argc, char* args[])
 				//KEYDOWN Message, called when a key has been pressed down
 
 			case SDL_MOUSEMOTION:
-				theCamera->setRotation(ev.motion.xrel, ev.motion.yrel);
-				//// Get Mouse Motion of X and Y
-				//CameraX += ev.motion.xrel / 200.0f;
-				//CameraY += -ev.motion.yrel / 200.0f;
-				//// Limit camera range
-				//if (CameraY > 150.0f) CameraY = 150.0f; else if (CameraY < -150.0f) CameraY = -150.0f;
-				//// Calculate camera target using CameraX and CameraY
-				//cameraTarget = cameraPosition + CameraDistance * vec3(cos(CameraX), tan(CameraY), sin(CameraX));
-				//// Normalised camera direction
-				//cameraDirection = normalize(cameraTarget - cameraPosition);
-
+				firstPersonCamera->setRotation(ev.motion.xrel, ev.motion.yrel);
 				break;
 
 			case SDL_KEYDOWN:
@@ -208,33 +184,27 @@ int main(int argc, char* args[])
 					break;
 
 				case SDLK_w:
-					theCamera->moveCamera1(0.2f);
-					//FPScameraPos = cameraDirection * 0.2f;
+					firstPersonCamera->moveCameraForward(0.2f);
 					break;
 				case SDLK_s:
-					theCamera->moveCamera1(-0.2f);
-					//FPScameraPos = cameraDirection * -0.2f;
+					firstPersonCamera->moveCameraForward(-0.2f);
 					break;
 				case SDLK_a:
-					theCamera->moveCamera2(-0.5f);
-					//FPScameraPos = cross(cameraDirection, cameraUp) * -0.5f;
+					firstPersonCamera->moveCameraRight(-0.5f);
 					break;
 				case SDLK_d:
-					theCamera->moveCamera2(0.5f);
-					//FPScameraPos = cross(cameraDirection, cameraUp) * 0.5f;
+					firstPersonCamera->moveCameraRight(0.5f);
 					break;
 
 
 				}
-				//cameraPosition += FPScameraPos;
-				//cameraTarget += FPScameraPos;
-				theCamera->update();
+
+				firstPersonCamera->update();
 			}
 
 		}
 		//updates view matrix
-		//mat4 viewMatrix = lookAt(cameraPosition, cameraTarget, cameraUp);
-		theCamera->updateViewMatrix();
+		firstPersonCamera->updateViewMatrix();
 
 		// Gets current tick
 		currentTicks = SDL_GetTicks();
@@ -264,12 +234,10 @@ int main(int argc, char* args[])
 		GLint diffuseLightColourLocation = glGetUniformLocation(currentShaderProgramID, "diffuseLightColour");
 		GLint specularLightColourLocation = glGetUniformLocation(currentShaderProgramID, "specularLightColour");
 
-		//theCamera->test();
 
-
-		glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, value_ptr(theCamera->getViewMatrix()));
-		glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, value_ptr(theCamera->getProjectionMatrix()));
-		glUniform3fv(camerPositionLocation, 1, value_ptr(theCamera->getCameraPosition()));
+		glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, value_ptr(firstPersonCamera->getViewMatrix()));
+		glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, value_ptr(firstPersonCamera->getProjectionMatrix()));
+		glUniform3fv(camerPositionLocation, 1, value_ptr(firstPersonCamera->getCameraPosition()));
 
 		glUniform3fv(lightDirectionLocation, 1, value_ptr(lightDirection));
 		glUniform4fv(ambientLightColourLocation, 1, value_ptr(ambientLightColour));

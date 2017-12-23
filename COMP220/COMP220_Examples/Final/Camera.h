@@ -1,15 +1,9 @@
 #pragma once
 
-#include <vector>
 
 #include <glm\glm.hpp>
 #include <glm\gtx\transform.hpp>
-#include <glm\gtc\type_ptr.hpp>
 
-#include "Mesh.h"
-#include "Model.h"
-#include "Texture.h"
-#include "Shader.h"
 
 class Camera
 {
@@ -30,12 +24,12 @@ public:
 
 	};
 
-	void moveCamera1(float change)
+	void moveCameraForward(float change)
 	{
 		FPScameraPos = cameraDirection * change;
 	}
 
-	void moveCamera2(float change)
+	void moveCameraRight(float change)
 	{
 		FPScameraPos = cross(cameraDirection, cameraUp) * change;
 	}

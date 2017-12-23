@@ -255,20 +255,21 @@ int main(int argc, char* args[])
 
 		GLuint currentShaderProgramID = armouredTank->getShaderProgramID();
 
-	/*	GLint viewMatrixLocation = glGetUniformLocation(currentShaderProgramID, "viewMatrix");
+		GLint viewMatrixLocation = glGetUniformLocation(currentShaderProgramID, "viewMatrix");
 		GLint projectionMatrixLocation = glGetUniformLocation(currentShaderProgramID, "projectionMatrix");
-		GLint camerPositionLocation = glGetUniformLocation(currentShaderProgramID, "cameraPosition");*/
+		GLint camerPositionLocation = glGetUniformLocation(currentShaderProgramID, "cameraPosition");
 
 		GLint lightDirectionLocation = glGetUniformLocation(currentShaderProgramID, "lightDirection");
 		GLint ambientLightColourLocation = glGetUniformLocation(currentShaderProgramID, "ambientLightColour");
 		GLint diffuseLightColourLocation = glGetUniformLocation(currentShaderProgramID, "diffuseLightColour");
 		GLint specularLightColourLocation = glGetUniformLocation(currentShaderProgramID, "specularLightColour");
 
-		theCamera->test();
+		//theCamera->test();
 
-		//glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, value_ptr(viewMatrix));
-		//glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, value_ptr(projectionMatrix));
-		//glUniform3fv(camerPositionLocation, 1, value_ptr(cameraPosition));
+
+		glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, value_ptr(theCamera->getViewMatrix()));
+		glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, value_ptr(theCamera->getProjectionMatrix()));
+		glUniform3fv(camerPositionLocation, 1, value_ptr(theCamera->getCameraPosition()));
 
 		glUniform3fv(lightDirectionLocation, 1, value_ptr(lightDirection));
 		glUniform4fv(ambientLightColourLocation, 1, value_ptr(ambientLightColour));

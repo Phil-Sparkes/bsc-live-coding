@@ -20,7 +20,7 @@ public:
 	void setRotation(float xMove, float yMove)
 	{
 		CameraX += xMove / 200.0f;
-		CameraY += yMove / 200.0f;
+		CameraY -= yMove / 200.0f;
 
 		if (CameraY > 150.0f) CameraY = 150.0f; else if (CameraY < -150.0f) CameraY = -150.0f;
 		// Calculate camera target using CameraX and CameraY
@@ -50,8 +50,19 @@ public:
 	{
 		viewMatrix = lookAt(cameraPosition, cameraTarget, cameraUp);
 	}
+	glm::mat4& getViewMatrix()
+	{
+		return viewMatrix;
+	}
+	glm::mat4& getProjectionMatrix()
+	{
+		return projectionMatrix;
+	}
+	glm::vec3& getCameraPosition()
+	{
+		return cameraPosition;
+	}
 
-	void test();
 
 private:;
 		// Camera set up
@@ -68,7 +79,5 @@ private:;
 		glm::mat4 viewMatrix;
 		//mat4 modelMatrix = translationMatrix*rotationMatrix*scaleMatrix;
 		glm::mat4 projectionMatrix;
-
-		GLint m_ShaderProgramID;
 
 };

@@ -16,22 +16,10 @@ Camera::Camera()
 	viewMatrix = lookAt(cameraPosition, cameraTarget, cameraUp);
 	projectionMatrix = glm::perspective(glm::radians(90.0f), float(800 / 800), 0.1f, 100.0f);
 
-	m_ShaderProgramID = 0;
 }
 
 Camera::~Camera()
 {
 }
 
-void Camera::test()
-{
 
-	GLint viewMatrixLocation = glGetUniformLocation(m_ShaderProgramID, "viewMatrix");
-	GLint projectionMatrixLocation = glGetUniformLocation(m_ShaderProgramID, "projectionMatrix");
-	GLint camerPositionLocation = glGetUniformLocation(m_ShaderProgramID, "cameraPosition");
-
-	glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, value_ptr(viewMatrix));
-	glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, value_ptr(projectionMatrix));
-	glUniform3fv(camerPositionLocation, 1, value_ptr(cameraPosition));
-
-}

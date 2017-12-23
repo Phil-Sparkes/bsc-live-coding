@@ -74,10 +74,9 @@ private:;
 		float CameraX = 0.0f;
 		float CameraY = 0.0f;
 		float CameraDistance = (float)(cameraTarget - cameraPosition).length();
+		
 		glm::vec3 FPScameraPos;
-
 		glm::mat4 viewMatrix;
-		//mat4 modelMatrix = translationMatrix*rotationMatrix*scaleMatrix;
 		glm::mat4 projectionMatrix;
 
 };

@@ -14,7 +14,7 @@ void main()
 {
 	vec4 textureColour=texture(texture0,textureCoordsOut);
 	float luminance = getLuminance(textureColour.rgb);
-	if (luminance<0.3)
+	if (luminance<0.1)
 	{
 	colour=vec4(0.0f,0.0f,0.0f,1.0f);
 	}

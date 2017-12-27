@@ -70,14 +70,14 @@ int main(int argc, char* args[])
 	}
 
 	GameObject * armouredTank = new GameObject();
-	armouredTank->loadMesh("Tank1.FBX");
-	armouredTank->loadDiffuseMap("Tank1DF.png");
-	armouredTank->setPosition(0.0f, -3.0f, 0.0f); 
+	armouredTank->loadMesh("Motorcycle.obj");
+	armouredTank->loadDiffuseMap("Motorcycle.png");
+	armouredTank->setPosition(3.0f, 20.0f, 0.0f); 
 	armouredTank->setRotation(0.0f, 0.7f, 0.0f);
+	armouredTank->setScale(0.1f, 0.1f, 0.1f);
 	armouredTank->loadShaderProgram("textureVert.glsl", "textureFrag.glsl");
 
 	Camera * firstPersonCamera = new Camera();
-
 
 	// Light
 	vec4 ambientLightColour = vec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -134,7 +134,7 @@ int main(int argc, char* args[])
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 
-	GLuint postProcessingProgramID = LoadShaders("passThroughVert.glsl", "postBlackAndWhite.glsl");
+	GLuint postProcessingProgramID = LoadShaders("passThroughVert.glsl", "postTextureFrag.glsl");
 	GLint texture0Location = glGetUniformLocation(postProcessingProgramID, "texture0");
 
 	// Create and compile our GLSL program from the shaders
@@ -143,6 +143,53 @@ int main(int argc, char* args[])
 	// sets frag colour
 	static const GLfloat fragColour[] = { 1.0f,1.0f,1.0f,1.0f };
 	
+	///collision configuration contains default setup for memory, collision setup. Advanced users can create their own configuration.
+	btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
+
+	///use the default collision dispatcher. For parallel processing you can use a diffent dispatcher (see Extras/BulletMultiThreaded)
+	btCollisionDispatcher* dispatcher = new btCollisionDispatcher(collisionConfiguration);
+
+	///btDbvtBroadphase is a good general purpose broadphase. You can also try out btAxis3Sweep.
+	btBroadphaseInterface* overlappingPairCache = new btDbvtBroadphase();
+
+	///the default constraint solver. For parallel processing you can use a different solver (see Extras/BulletMultiThreaded)
+	btSequentialImpulseConstraintSolver* solver = new btSequentialImpulseConstraintSolver;
+
+	btDiscreteDynamicsWorld* dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
+
+	dynamicsWorld->setGravity(btVector3(0, -10, 0));
+
+	btCollisionShape* groundShape = new btBoxShape(btVector3(btScalar(50.), btScalar(2.), btScalar(50.)));
+
+	btTransform groundTransform;
+	groundTransform.setIdentity();
+	groundTransform.setOrigin(btVector3(0, -10, 0));
+
+	btScalar mass(0.);
+	btVector3 localInertia(0, 0, 0);
+
+	btDefaultMotionState* myMotionState = new btDefaultMotionState(groundTransform);
+	btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, groundShape, localInertia);
+	btRigidBody* groundRigidBody = new btRigidBody(rbInfo);
+
+	dynamicsWorld->addRigidBody(groundRigidBody);
+
+	btCollisionShape* tankCollisionShape = new btBoxShape(btVector3(2, 2, 2));
+
+	btTransform tankTransform;
+	tankTransform.setIdentity();
+	tankTransform.setOrigin(btVector3(armouredTank->getPosition().x, armouredTank->getPosition().y, armouredTank->getPosition().z));
+	btVector3 tankInertia(0, 0, 0);
+	btScalar tankMass(1.f);
+
+	tankCollisionShape->calculateLocalInertia(tankMass, tankInertia);
+
+	btDefaultMotionState* tankMotionState = new btDefaultMotionState(tankTransform);
+	btRigidBody::btRigidBodyConstructionInfo tankrbInfo(tankMass, tankMotionState, tankCollisionShape, tankInertia);
+	btRigidBody* tankRigidBody = new btRigidBody(tankrbInfo);
+
+	dynamicsWorld->addRigidBody(tankRigidBody);
+
 	glEnable(GL_DEPTH_TEST);
 	int lastTicks = SDL_GetTicks();
 	int currentTicks = SDL_GetTicks();
@@ -195,11 +242,13 @@ int main(int argc, char* args[])
 				case SDLK_d:
 					firstPersonCamera->moveCameraRight(0.5f);
 					break;
-
+				case SDLK_p:
+					tankRigidBody->applyForce(btVector3(0.0f, 1000.f, 0.0f), btVector3(0.0f,1000.0f,0.0f));
+					break;
 
 				}
 
-				firstPersonCamera->update();
+				//firstPersonCamera->update();
 			}
 
 		}
@@ -210,7 +259,15 @@ int main(int argc, char* args[])
 		currentTicks = SDL_GetTicks();
 
 		float deltaTime = (float)(currentTicks - lastTicks) / 1000.0f;
-		
+
+		dynamicsWorld->stepSimulation(1.f / 60.f, 10);
+
+		tankTransform = tankRigidBody->getWorldTransform();
+		btVector3 tankOrigin = tankTransform.getOrigin();
+		btQuaternion tankRotation = tankTransform.getRotation();
+
+		armouredTank->setPosition(tankOrigin.getX(), tankOrigin.getY(), tankOrigin.getZ());
+
 		armouredTank->update();
 
 		glEnable(GL_DEPTH_TEST);
@@ -266,19 +323,32 @@ int main(int argc, char* args[])
 		SDL_GL_SwapWindow(window);
 	}
 
-	////delete dynamics world
-	//delete dynamicsWorld;
+	dynamicsWorld->removeRigidBody(tankRigidBody);
+	dynamicsWorld->removeRigidBody(groundRigidBody);
 
-	////delete solver
-	//delete solver;
+	delete tankCollisionShape;
+	delete tankRigidBody->getMotionState();
+	delete tankRigidBody;
 
-	////delete broadphase
-	//delete overlappingPairCache;
+	//delete ground
+	delete groundShape;
+	delete groundRigidBody->getMotionState();
+	delete groundRigidBody;
 
-	////delete dispatcher
-	//delete dispatcher;
 
-	//delete collisionConfiguration;
+	//delete dynamics world
+	delete dynamicsWorld;
+
+	//delete solver
+	delete solver;
+
+	//delete broadphase
+	delete overlappingPairCache;
+
+	//delete dispatcher
+	delete dispatcher;
+
+	delete collisionConfiguration;
 
 
 	glDeleteProgram(postProcessingProgramID);

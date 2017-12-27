@@ -15,7 +15,7 @@
 #include "GameObject.h"
 #include "Camera.h"
 
-//#include "btBulletDynamicsCommon.h"
+#include "btBulletDynamicsCommon.h"
 
 #include "Vertex.h"
 #include "Shader.h"

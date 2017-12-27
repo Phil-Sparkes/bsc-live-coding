@@ -27,11 +27,13 @@ public:
 	void moveCameraForward(float change)
 	{
 		FPScameraPos = cameraDirection * change;
+		update();
 	}
 
 	void moveCameraRight(float change)
 	{
 		FPScameraPos = cross(cameraDirection, cameraUp) * change;
+		update();
 	}
 
 	void update()

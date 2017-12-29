@@ -69,18 +69,18 @@ int main(int argc, char* args[])
 		return 1;
 	}
 
-	GameObject * armouredTank = new GameObject();
-	armouredTank->loadMesh("Motorcycle.obj");
-	armouredTank->loadDiffuseMap("Motorcycle.png");
-	armouredTank->setPosition(3.0f, 20.0f, 0.0f); 
-	armouredTank->setRotation(0.0f, 0.7f, 0.0f);
-	armouredTank->setScale(0.1f, 0.1f, 0.1f);
-	armouredTank->loadShaderProgram("textureVert.glsl", "textureFrag.glsl");
+	GameObject * motorcycle = new GameObject();
+	motorcycle->loadMesh("Motorcycle.obj");
+	motorcycle->loadDiffuseMap("Motorcycle.png");
+	motorcycle->setPosition(3.0f, 20.0f, 0.0f); 
+	motorcycle->setRotation(0.0f, 0.7f, 0.0f);
+	motorcycle->setScale(0.1f, 0.1f, 0.1f);
+	motorcycle->loadShaderProgram("lightingVert.glsl", "lightingFrag.glsl");
 
 	Camera * firstPersonCamera = new Camera();
 
 	// Light
-	vec4 ambientLightColour = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+	vec4 ambientLightColour = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 	vec3 lightDirection = vec3(0.0f, 0.0f, -1.0f);
 	vec4 diffuseLightColour = vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	vec4 specularLightColour = vec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -174,21 +174,21 @@ int main(int argc, char* args[])
 
 	dynamicsWorld->addRigidBody(groundRigidBody);
 
-	btCollisionShape* tankCollisionShape = new btBoxShape(btVector3(2, 2, 2));
+	btCollisionShape* motorcycleCollisionShape = new btBoxShape(btVector3(2, 2, 2));
 
-	btTransform tankTransform;
-	tankTransform.setIdentity();
-	tankTransform.setOrigin(btVector3(armouredTank->getPosition().x, armouredTank->getPosition().y, armouredTank->getPosition().z));
-	btVector3 tankInertia(0, 0, 0);
-	btScalar tankMass(1.f);
+	btTransform motorcycleTransform;
+	motorcycleTransform.setIdentity();
+	motorcycleTransform.setOrigin(btVector3(motorcycle->getPosition().x, motorcycle->getPosition().y, motorcycle->getPosition().z));
+	btVector3 motorcycleInertia(0, 0, 0);
+	btScalar motorcycleMass(1.f);
 
-	tankCollisionShape->calculateLocalInertia(tankMass, tankInertia);
+	motorcycleCollisionShape->calculateLocalInertia(motorcycleMass, motorcycleInertia);
 
-	btDefaultMotionState* tankMotionState = new btDefaultMotionState(tankTransform);
-	btRigidBody::btRigidBodyConstructionInfo tankrbInfo(tankMass, tankMotionState, tankCollisionShape, tankInertia);
-	btRigidBody* tankRigidBody = new btRigidBody(tankrbInfo);
+	btDefaultMotionState* motorcycleMotionState = new btDefaultMotionState(motorcycleTransform);
+	btRigidBody::btRigidBodyConstructionInfo motorcyclerbInfo(motorcycleMass, motorcycleMotionState, motorcycleCollisionShape, motorcycleInertia);
+	btRigidBody* motorcycleRigidBody = new btRigidBody(motorcyclerbInfo);
 
-	dynamicsWorld->addRigidBody(tankRigidBody);
+	dynamicsWorld->addRigidBody(motorcycleRigidBody);
 
 	glEnable(GL_DEPTH_TEST);
 	int lastTicks = SDL_GetTicks();
@@ -243,12 +243,11 @@ int main(int argc, char* args[])
 					firstPersonCamera->moveCameraRight(0.5f);
 					break;
 				case SDLK_p:
-					tankRigidBody->applyForce(btVector3(0.0f, 1000.f, 0.0f), btVector3(0.0f,1000.0f,0.0f));
+					motorcycleRigidBody->applyForce(btVector3(0.0f, 1000.f, 0.0f), btVector3(0.0f,1000.0f,0.0f));
 					break;
 
 				}
 
-				//firstPersonCamera->update();
 			}
 
 		}
@@ -259,16 +258,17 @@ int main(int argc, char* args[])
 		currentTicks = SDL_GetTicks();
 
 		float deltaTime = (float)(currentTicks - lastTicks) / 1000.0f;
+		printf("%f \n" , currentTicks / 1000.f);
 
 		dynamicsWorld->stepSimulation(1.f / 60.f, 10);
 
-		tankTransform = tankRigidBody->getWorldTransform();
-		btVector3 tankOrigin = tankTransform.getOrigin();
-		btQuaternion tankRotation = tankTransform.getRotation();
+		motorcycleTransform = motorcycleRigidBody->getWorldTransform();
+		btVector3 motorcycleOrigin = motorcycleTransform.getOrigin();
+		btQuaternion motorcycleRotation = motorcycleTransform.getRotation();
 
-		armouredTank->setPosition(tankOrigin.getX(), tankOrigin.getY(), tankOrigin.getZ());
+		motorcycle->setPosition(motorcycleOrigin.getX(), motorcycleOrigin.getY(), motorcycleOrigin.getZ());
 
-		armouredTank->update();
+		motorcycle->update();
 
 		glEnable(GL_DEPTH_TEST);
 		glBindFramebuffer(GL_FRAMEBUFFER, frameBufferID);
@@ -277,10 +277,11 @@ int main(int argc, char* args[])
 		glClearColor(0.1, 0.1, 0.1, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		motorcycle->preRender();
 
-		armouredTank->preRender();
+		GLuint currentShaderProgramID = motorcycle->getShaderProgramID();
 
-		GLuint currentShaderProgramID = armouredTank->getShaderProgramID();
+		GLint currentTimeLocation = glGetUniformLocation(currentShaderProgramID, "time");
 
 		GLint viewMatrixLocation = glGetUniformLocation(currentShaderProgramID, "viewMatrix");
 		GLint projectionMatrixLocation = glGetUniformLocation(currentShaderProgramID, "projectionMatrix");
@@ -291,6 +292,7 @@ int main(int argc, char* args[])
 		GLint diffuseLightColourLocation = glGetUniformLocation(currentShaderProgramID, "diffuseLightColour");
 		GLint specularLightColourLocation = glGetUniformLocation(currentShaderProgramID, "specularLightColour");
 
+		glUniform1f(currentTimeLocation, (float)(currentTicks) / 1000.f);
 
 		glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, value_ptr(firstPersonCamera->getViewMatrix()));
 		glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, value_ptr(firstPersonCamera->getProjectionMatrix()));
@@ -301,7 +303,7 @@ int main(int argc, char* args[])
 		glUniform4fv(diffuseLightColourLocation, 1, value_ptr(diffuseLightColour));
 		glUniform4fv(specularLightColourLocation, 1, value_ptr(specularLightColour));
 
-		armouredTank->render();
+		motorcycle->render();
 		
 		glDisable(GL_DEPTH_TEST);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -323,12 +325,12 @@ int main(int argc, char* args[])
 		SDL_GL_SwapWindow(window);
 	}
 
-	dynamicsWorld->removeRigidBody(tankRigidBody);
+	dynamicsWorld->removeRigidBody(motorcycleRigidBody);
 	dynamicsWorld->removeRigidBody(groundRigidBody);
 
-	delete tankCollisionShape;
-	delete tankRigidBody->getMotionState();
-	delete tankRigidBody;
+	delete motorcycleCollisionShape;
+	delete motorcycleRigidBody->getMotionState();
+	delete motorcycleRigidBody;
 
 	//delete ground
 	delete groundShape;
@@ -358,11 +360,11 @@ int main(int argc, char* args[])
 	glDeleteRenderbuffers(1, &depthRenderBufferID);
 	glDeleteTextures(1, &colourBufferID);
 
-	if (armouredTank)
+	if (motorcycle)
 	{
-		armouredTank->destroy();
-		delete armouredTank;
-		armouredTank = nullptr;
+		motorcycle->destroy();
+		delete motorcycle;
+		motorcycle = nullptr;
 	}
 
 	//Delete Context

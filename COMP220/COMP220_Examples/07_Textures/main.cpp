@@ -300,7 +300,7 @@ int main(int argc, char* args[])
 		// changes the colour of frag shader
 		fragColour[2] = (currentTimeLocation, (float)(currentTicks) / 10000.0f);
 		//printf("%f\n", fragColour[2]);
-
+		printf("%f \n", currentTicks / 1000.f);
 
 
 		glUniform4fv(location, 1, fragColour);

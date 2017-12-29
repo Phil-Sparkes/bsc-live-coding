@@ -31,6 +31,7 @@ out vec2 vertexTextureCoordOut;
 out vec4 diffuse;
 out vec4 specular;
 out vec4 ambient;
+out vec2 sampleTest;
 
 void main()
 {
@@ -59,3 +60,4 @@ void main()
 	vertexColourOut=vertexColour;
 	vertexTextureCoordOut=vertexTextureCoord;
 }
+

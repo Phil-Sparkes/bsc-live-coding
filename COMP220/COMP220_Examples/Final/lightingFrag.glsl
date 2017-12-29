@@ -14,7 +14,17 @@ uniform sampler2D baseTexture;
 
 uniform float time=0.0f;
 
+uniform vec4 blackColour = vec4(1.,1.,1.,1.);
+
 void main()
+
+
 {
     colour = ambient+(diffuse*texture(baseTexture, vertexTextureCoordOut))+specular;
+ 
+    //colour = blackColour-colour;
+
+
 }
+
+

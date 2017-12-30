@@ -72,16 +72,23 @@ int main(int argc, char* args[])
 	GameObject * motorcycle = new GameObject();
 	motorcycle->loadMesh("Motorcycle.obj");
 	motorcycle->loadDiffuseMap("Motorcycle.png");
-	motorcycle->setPosition(3.0f, 20.0f, 0.0f); 
-	motorcycle->setRotation(0.0f, 0.7f, 0.0f);
+	motorcycle->setPosition(0.0f, 20.0f, 0.0f); 
+	motorcycle->setRotation(0.0f, 1.5f, 0.0f);
 	motorcycle->setScale(0.1f, 0.1f, 0.1f);
 	motorcycle->loadShaderProgram("lightingVert.glsl", "lightingFrag.glsl");
+
+	GameObject * bridge = new GameObject();
+	bridge->loadMesh("WoodBridge.obj");
+	bridge->loadDiffuseMap("EnvironmentTex.png");
+	bridge->setPosition(0.f, -60.f, 0.f);
+	bridge->setScale(.05f, .05f, .05f);
+	bridge->loadShaderProgram("lightingVert.glsl", "lightingFrag.glsl");
 
 	Camera * firstPersonCamera = new Camera();
 
 	// Light
 	vec4 ambientLightColour = vec4(0.0f, 0.0f, 0.0f, 1.0f);
-	vec3 lightDirection = vec3(0.0f, 0.0f, -1.0f);
+	vec3 lightDirection = vec3(0.5f, .7f, 0.0f);
 	vec4 diffuseLightColour = vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	vec4 specularLightColour = vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
@@ -137,6 +144,8 @@ int main(int argc, char* args[])
 	GLuint postProcessingProgramID = LoadShaders("passThroughVert.glsl", "postTextureFrag.glsl");
 	GLint texture0Location = glGetUniformLocation(postProcessingProgramID, "texture0");
 
+	float glitchSwitch = 0.;
+
 	// Create and compile our GLSL program from the shaders
 	//GLint programID = LoadShaders("lightingVert.glsl", "lightingFrag.glsl");
 
@@ -163,7 +172,7 @@ int main(int argc, char* args[])
 
 	btTransform groundTransform;
 	groundTransform.setIdentity();
-	groundTransform.setOrigin(btVector3(0, -10, 0));
+	groundTransform.setOrigin(btVector3(0, -51, 0));
 
 	btScalar mass(0.);
 	btVector3 localInertia(0, 0, 0);
@@ -243,9 +252,14 @@ int main(int argc, char* args[])
 					firstPersonCamera->moveCameraRight(0.5f);
 					break;
 				case SDLK_p:
-					motorcycleRigidBody->applyForce(btVector3(0.0f, 1000.f, 0.0f), btVector3(0.0f,1000.0f,0.0f));
+					motorcycleRigidBody->applyCentralImpulse(btVector3(0.f, 10.f, 0.f));
 					break;
-
+				case SDLK_l:
+					if (glitchSwitch == 1.)
+						glitchSwitch = 0.;
+					else
+						glitchSwitch = 1.;
+					break;
 				}
 
 			}
@@ -257,8 +271,14 @@ int main(int argc, char* args[])
 		// Gets current tick
 		currentTicks = SDL_GetTicks();
 
-		float deltaTime = (float)(currentTicks - lastTicks) / 1000.0f;
-		printf("%f \n" , currentTicks / 1000.f);
+		GLint currentTimeLocation = glGetUniformLocation(postProcessingProgramID, "time");
+		glUniform1f(currentTimeLocation, (float)(currentTicks) / 1000.f);
+		
+		GLint currentTestLocation = glGetUniformLocation(postProcessingProgramID, "theTest");
+		glUniform1f(currentTestLocation, glitchSwitch);
+
+
+;		float deltaTime = (float)(currentTicks - lastTicks) / 1000.0f;
 
 		dynamicsWorld->stepSimulation(1.f / 60.f, 10);
 
@@ -281,8 +301,6 @@ int main(int argc, char* args[])
 
 		GLuint currentShaderProgramID = motorcycle->getShaderProgramID();
 
-		GLint currentTimeLocation = glGetUniformLocation(currentShaderProgramID, "time");
-
 		GLint viewMatrixLocation = glGetUniformLocation(currentShaderProgramID, "viewMatrix");
 		GLint projectionMatrixLocation = glGetUniformLocation(currentShaderProgramID, "projectionMatrix");
 		GLint camerPositionLocation = glGetUniformLocation(currentShaderProgramID, "cameraPosition");
@@ -291,8 +309,6 @@ int main(int argc, char* args[])
 		GLint ambientLightColourLocation = glGetUniformLocation(currentShaderProgramID, "ambientLightColour");
 		GLint diffuseLightColourLocation = glGetUniformLocation(currentShaderProgramID, "diffuseLightColour");
 		GLint specularLightColourLocation = glGetUniformLocation(currentShaderProgramID, "specularLightColour");
-
-		glUniform1f(currentTimeLocation, (float)(currentTicks) / 1000.f);
 
 		glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, value_ptr(firstPersonCamera->getViewMatrix()));
 		glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, value_ptr(firstPersonCamera->getProjectionMatrix()));
@@ -304,6 +320,39 @@ int main(int argc, char* args[])
 		glUniform4fv(specularLightColourLocation, 1, value_ptr(specularLightColour));
 
 		motorcycle->render();
+
+		bridge->update();
+
+		glEnable(GL_DEPTH_TEST);
+		glBindFramebuffer(GL_FRAMEBUFFER, frameBufferID);
+
+		//Update Game and Draw with OpenGL!
+		//glClearColor(0.1, 0.1, 0.1, 1.0);
+		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		bridge->preRender();
+
+		currentShaderProgramID = bridge->getShaderProgramID();
+
+		viewMatrixLocation = glGetUniformLocation(currentShaderProgramID, "viewMatrix");
+		projectionMatrixLocation = glGetUniformLocation(currentShaderProgramID, "projectionMatrix");
+		camerPositionLocation = glGetUniformLocation(currentShaderProgramID, "cameraPosition");
+
+		lightDirectionLocation = glGetUniformLocation(currentShaderProgramID, "lightDirection");
+		ambientLightColourLocation = glGetUniformLocation(currentShaderProgramID, "ambientLightColour");
+		diffuseLightColourLocation = glGetUniformLocation(currentShaderProgramID, "diffuseLightColour");
+		specularLightColourLocation = glGetUniformLocation(currentShaderProgramID, "specularLightColour");
+
+		glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, value_ptr(firstPersonCamera->getViewMatrix()));
+		glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, value_ptr(firstPersonCamera->getProjectionMatrix()));
+		glUniform3fv(camerPositionLocation, 1, value_ptr(firstPersonCamera->getCameraPosition()));
+
+		glUniform3fv(lightDirectionLocation, 1, value_ptr(lightDirection));
+		glUniform4fv(ambientLightColourLocation, 1, value_ptr(ambientLightColour));
+		glUniform4fv(diffuseLightColourLocation, 1, value_ptr(diffuseLightColour));
+		glUniform4fv(specularLightColourLocation, 1, value_ptr(specularLightColour));
+
+		bridge->render();
 		
 		glDisable(GL_DEPTH_TEST);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -365,6 +414,13 @@ int main(int argc, char* args[])
 		motorcycle->destroy();
 		delete motorcycle;
 		motorcycle = nullptr;
+	}
+
+	if (bridge)
+	{
+		bridge->destroy();
+		delete bridge;
+		bridge = nullptr;
 	}
 
 	//Delete Context

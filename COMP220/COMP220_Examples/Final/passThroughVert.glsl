@@ -4,6 +4,10 @@ layout(location = 0) in vec2 vertexPosition;
 
 out vec2 textureCoordsOut;
 
+uniform float time=0.0f;
+
+uniform float theTest = 0;
+
 void main()
 {
 

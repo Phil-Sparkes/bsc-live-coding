@@ -10,17 +10,7 @@ uniform sampler2D texture0;
 
 uniform vec4 blackColour = vec4(1.,1.,1.,1.);
 
-int RGBSplit(vec3 colour)
-{
-if (colour.r > colour.g)
-{
-return 0;
-}
-else
-{
-return 1;
-}
-}
+uniform float theTest = 0;
 
 // https://hub.jmonkeyengine.org/t/august-2016-monthly-wip-screenshot-thread/36536/97
 vec4 getDisplacedColor(in sampler2D img,in vec2 uv,in vec3 offsets){
@@ -36,21 +26,22 @@ float getLuminance(vec3 colour)
 return (colour.r+colour.g+colour.b)/3.0f;
 }
 
+
+
 void main()
 {
-    //colour=texture((texture0 /2),(textureCoordsOut - vec2(1.,1.)));
+
 	//colour = blackColour - colour;
 
 	//vec4 textureColour=texture(texture0,(textureCoordsOut -100000.));
 	//float luminance = getLuminance(textureColour.rgb);
 	
-	//int whatever = RGBSplit(textureColour.rgb);
-	//if (whatever == 0)
-	//{
-	//colour = vec4(0.,1.,1.,1.);
-	//}
-	
-	colour = getDisplacedColor(texture0, textureCoordsOut, vec3(1.,sin(time),0.8));
-	//colour.r+=sin(time);
-	//colour.g+=cos(time);
+	if (theTest == 1.)
+	{
+	colour = getDisplacedColor(texture0, textureCoordsOut, vec3(sin(time),tan(-time),cos(time)));
+	}
+	else
+	{
+	colour=texture(texture0,textureCoordsOut);
+	}
 }

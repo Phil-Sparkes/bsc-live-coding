@@ -42,22 +42,20 @@ public:
 
 	void applyCentralImpulse(float XVal, float YVal, float ZVal)
 	{
+		m_RigidBody->activate();
 		m_RigidBody->applyCentralImpulse(btVector3(XVal, YVal, ZVal));
 	}
 
 	void makeRigidBody();
 	void update(btDiscreteDynamicsWorld*);
 	void destroy(btDiscreteDynamicsWorld*);
-private:;
-	//btDiscreteDynamicsWorld* dynamicsWorld;
 
+private:;
 		btCollisionShape* m_CollisionShape;
 		btTransform m_Transform;
 		btVector3 m_Inertia;
 		btScalar m_Mass;
 		btDefaultMotionState* m_MotionState;
-		//btRigidBody::btRigidBodyConstructionInfo m_rbInfo;
 		btRigidBody* m_RigidBody;
 
-		//btQuaternion m_Rotation;
 };

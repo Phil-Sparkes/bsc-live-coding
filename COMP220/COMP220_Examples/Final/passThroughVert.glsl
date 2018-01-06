@@ -6,7 +6,7 @@ out vec2 textureCoordsOut;
 
 uniform float time=0.0f;
 
-uniform float theTest = 0;
+uniform float effects = 0;
 
 void main()
 {

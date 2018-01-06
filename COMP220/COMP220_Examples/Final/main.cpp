@@ -149,7 +149,7 @@ int main(int argc, char* args[])
 	GLuint postProcessingProgramID = LoadShaders("passThroughVert.glsl", "postTextureFrag.glsl");
 	GLint texture0Location = glGetUniformLocation(postProcessingProgramID, "texture0");
 
-	float glitchSwitch = 0.;
+	float effectCase = 0.;
 
 	// Create and compile our GLSL program from the shaders
 	//GLint programID = LoadShaders("lightingVert.glsl", "lightingFrag.glsl");
@@ -244,12 +244,19 @@ int main(int argc, char* args[])
 					break;
 				case SDLK_p:
 					motorcyclePhysics->applyCentralImpulse(0.f, 10.f, 0.f);
+					printf("1");
 					break;
 				case SDLK_l:
-					if (glitchSwitch == 1.)
-						glitchSwitch = 0.;
+					if (effectCase == 1.)
+						effectCase = 0.;
 					else
-						glitchSwitch = 1.;
+						effectCase = 1.;
+					break;
+				case SDLK_k:
+					if (effectCase == 2.)
+						effectCase = 0.;
+					else
+						effectCase = 2.;
 					break;
 				}
 
@@ -265,8 +272,8 @@ int main(int argc, char* args[])
 		GLint currentTimeLocation = glGetUniformLocation(postProcessingProgramID, "time");
 		glUniform1f(currentTimeLocation, (float)(currentTicks) / 1000.f);
 		
-		GLint currentTestLocation = glGetUniformLocation(postProcessingProgramID, "theTest");
-		glUniform1f(currentTestLocation, glitchSwitch);
+		GLint currentTestLocation = glGetUniformLocation(postProcessingProgramID, "effects");
+		glUniform1f(currentTestLocation, effectCase);
 
 
 		float deltaTime = (float)(currentTicks - lastTicks) / 1000.0f;

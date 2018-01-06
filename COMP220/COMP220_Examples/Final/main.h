@@ -13,6 +13,8 @@
 #include <glm\gtc\type_ptr.hpp>
 
 #include "GameObject.h"
+#include "ObjectTransform.h"
+#include "PhysicsObject.h"
 #include "Camera.h"
 
 #include "btBulletDynamicsCommon.h"

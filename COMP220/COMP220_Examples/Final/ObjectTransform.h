@@ -1,12 +1,13 @@
 #pragma once
 
 #include <glm\glm.hpp>
+#include <glm\gtx\transform.hpp>
 
-class Transform
+class ObjectTransform
 {
 public:
-	Transform();
-	~Transform();
+	ObjectTransform();
+	~ObjectTransform();
 
 	void setPosition(float xVal, float yVal, float zVal)
 	{
@@ -40,6 +41,7 @@ public:
 		return m_ModelMatrix;
 	};
 
+	void update();
 
 private:;
 		glm::vec3 m_Position;

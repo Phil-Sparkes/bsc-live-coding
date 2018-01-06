@@ -69,20 +69,25 @@ int main(int argc, char* args[])
 		return 1;
 	}
 
-	GameObject * motorcycle = new GameObject();
-	motorcycle->loadMesh("Motorcycle.obj");
-	motorcycle->loadDiffuseMap("Motorcycle.png");
-	motorcycle->setPosition(0.0f, 20.0f, 0.0f); 
-	motorcycle->setRotation(0.0f, 1.5f, 0.0f);
-	motorcycle->setScale(0.1f, 0.1f, 0.1f);
-	motorcycle->loadShaderProgram("lightingVert.glsl", "lightingFrag.glsl");
+
+	GameObject * motorcycleObject = new GameObject();
+	motorcycleObject->loadMesh("Motorcycle.obj");
+	motorcycleObject->loadDiffuseMap("Motorcycle.png");
+	motorcycleObject->loadShaderProgram("lightingVert.glsl", "lightingFrag.glsl");
+	ObjectTransform * motorcycleTransform = new ObjectTransform();
+	motorcycleTransform->setPosition(0.0f, 20.0f, 0.0f);
+	motorcycleTransform->setRotation(0.0f, 1.5f, 0.0f);
+	motorcycleTransform->setScale(0.1f, 0.1f, 0.1f);
+
+
 
 	GameObject * bridge = new GameObject();
 	bridge->loadMesh("WoodBridge.obj");
 	bridge->loadDiffuseMap("EnvironmentTex.png");
-	bridge->setPosition(0.f, -60.f, 0.f);
-	bridge->setScale(.05f, .05f, .05f);
 	bridge->loadShaderProgram("lightingVert.glsl", "lightingFrag.glsl");
+	ObjectTransform * bridgeTransform = new ObjectTransform();
+	bridgeTransform->setPosition(0.f, -60.f, 0.f);
+	bridgeTransform->setScale(.05f, .05f, .05f);
 
 	Camera * firstPersonCamera = new Camera();
 
@@ -93,10 +98,10 @@ int main(int argc, char* args[])
 	vec4 specularLightColour = vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
 	// Material
-	vec4 ambientMaterialColour = vec4(0.05f, 0.05f, 0.05f, 1.0f);
+	/*vec4 ambientMaterialColour = vec4(0.05f, 0.05f, 0.05f, 1.0f);
 	vec4 diffuseMaterialColour = vec4(0.6f, 0.6f, 0.6f, 1.0f);
 	vec4 specularMaterialColour = vec4(1.0f, 1.0f, 1.0f, 1.0f);
-	float specularPower = 25.0f;
+	float specularPower = 25.0f;*/
 
 	// Colour Buffer Texture
 	GLuint colourBufferID = createTexture(800, 800);
@@ -168,36 +173,22 @@ int main(int argc, char* args[])
 
 	dynamicsWorld->setGravity(btVector3(0, -10, 0));
 
-	btCollisionShape* groundShape = new btBoxShape(btVector3(btScalar(50.), btScalar(2.), btScalar(50.)));
+	PhysicsObject * groundShape = new PhysicsObject();
+	groundShape->setCollisionShape(btScalar(50.), btScalar(2.), btScalar(50.));
+	groundShape->setObjectOrigin(0, -51, 0);
 
-	btTransform groundTransform;
-	groundTransform.setIdentity();
-	groundTransform.setOrigin(btVector3(0, -51, 0));
+	groundShape->makeRigidBody();
 
-	btScalar mass(0.);
-	btVector3 localInertia(0, 0, 0);
+	groundShape->addRigidBody(dynamicsWorld);
 
-	btDefaultMotionState* myMotionState = new btDefaultMotionState(groundTransform);
-	btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, groundShape, localInertia);
-	btRigidBody* groundRigidBody = new btRigidBody(rbInfo);
+	PhysicsObject * motorcyclePhysics = new PhysicsObject();
+	motorcyclePhysics->setCollisionShape(2, 2, 2);
+	motorcyclePhysics->setObjectOrigin(motorcycleTransform->getPosition().x, motorcycleTransform->getPosition().y, motorcycleTransform->getPosition().z);
+	motorcyclePhysics->setObjectMass(1.);
 
-	dynamicsWorld->addRigidBody(groundRigidBody);
+	motorcyclePhysics->makeRigidBody();
 
-	btCollisionShape* motorcycleCollisionShape = new btBoxShape(btVector3(2, 2, 2));
-
-	btTransform motorcycleTransform;
-	motorcycleTransform.setIdentity();
-	motorcycleTransform.setOrigin(btVector3(motorcycle->getPosition().x, motorcycle->getPosition().y, motorcycle->getPosition().z));
-	btVector3 motorcycleInertia(0, 0, 0);
-	btScalar motorcycleMass(1.f);
-
-	motorcycleCollisionShape->calculateLocalInertia(motorcycleMass, motorcycleInertia);
-
-	btDefaultMotionState* motorcycleMotionState = new btDefaultMotionState(motorcycleTransform);
-	btRigidBody::btRigidBodyConstructionInfo motorcyclerbInfo(motorcycleMass, motorcycleMotionState, motorcycleCollisionShape, motorcycleInertia);
-	btRigidBody* motorcycleRigidBody = new btRigidBody(motorcyclerbInfo);
-
-	dynamicsWorld->addRigidBody(motorcycleRigidBody);
+	motorcyclePhysics->addRigidBody(dynamicsWorld);
 
 	glEnable(GL_DEPTH_TEST);
 	int lastTicks = SDL_GetTicks();
@@ -252,7 +243,7 @@ int main(int argc, char* args[])
 					firstPersonCamera->moveCameraRight(0.5f);
 					break;
 				case SDLK_p:
-					motorcycleRigidBody->applyCentralImpulse(btVector3(0.f, 10.f, 0.f));
+					motorcyclePhysics->applyCentralImpulse(0.f, 10.f, 0.f);
 					break;
 				case SDLK_l:
 					if (glitchSwitch == 1.)
@@ -278,17 +269,16 @@ int main(int argc, char* args[])
 		glUniform1f(currentTestLocation, glitchSwitch);
 
 
-;		float deltaTime = (float)(currentTicks - lastTicks) / 1000.0f;
+		float deltaTime = (float)(currentTicks - lastTicks) / 1000.0f;
+
+		motorcyclePhysics->update(dynamicsWorld);
 
 		dynamicsWorld->stepSimulation(1.f / 60.f, 10);
 
-		motorcycleTransform = motorcycleRigidBody->getWorldTransform();
-		btVector3 motorcycleOrigin = motorcycleTransform.getOrigin();
-		btQuaternion motorcycleRotation = motorcycleTransform.getRotation();
+		motorcycleTransform->setPosition(motorcyclePhysics->getObjectOrigin().getX(), motorcyclePhysics->getObjectOrigin().getY(), motorcyclePhysics->getObjectOrigin().getZ());
 
-		motorcycle->setPosition(motorcycleOrigin.getX(), motorcycleOrigin.getY(), motorcycleOrigin.getZ());
 
-		motorcycle->update();
+		motorcycleTransform->update();
 
 		glEnable(GL_DEPTH_TEST);
 		glBindFramebuffer(GL_FRAMEBUFFER, frameBufferID);
@@ -297,9 +287,9 @@ int main(int argc, char* args[])
 		glClearColor(0.1, 0.1, 0.1, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		motorcycle->preRender();
+		motorcycleObject->preRender();
 
-		GLuint currentShaderProgramID = motorcycle->getShaderProgramID();
+		GLuint currentShaderProgramID = motorcycleObject->getShaderProgramID();
 
 		GLint viewMatrixLocation = glGetUniformLocation(currentShaderProgramID, "viewMatrix");
 		GLint projectionMatrixLocation = glGetUniformLocation(currentShaderProgramID, "projectionMatrix");
@@ -310,6 +300,11 @@ int main(int argc, char* args[])
 		GLint diffuseLightColourLocation = glGetUniformLocation(currentShaderProgramID, "diffuseLightColour");
 		GLint specularLightColourLocation = glGetUniformLocation(currentShaderProgramID, "specularLightColour");
 
+
+		GLint modelMatrixLocation = glGetUniformLocation(currentShaderProgramID, "modelMatrix");
+		glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, value_ptr(motorcycleTransform->getModelMatrix()));
+
+
 		glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, value_ptr(firstPersonCamera->getViewMatrix()));
 		glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, value_ptr(firstPersonCamera->getProjectionMatrix()));
 		glUniform3fv(camerPositionLocation, 1, value_ptr(firstPersonCamera->getCameraPosition()));
@@ -319,16 +314,12 @@ int main(int argc, char* args[])
 		glUniform4fv(diffuseLightColourLocation, 1, value_ptr(diffuseLightColour));
 		glUniform4fv(specularLightColourLocation, 1, value_ptr(specularLightColour));
 
-		motorcycle->render();
+		motorcycleObject->render();
 
-		bridge->update();
+		bridgeTransform->update();
 
 		glEnable(GL_DEPTH_TEST);
 		glBindFramebuffer(GL_FRAMEBUFFER, frameBufferID);
-
-		//Update Game and Draw with OpenGL!
-		//glClearColor(0.1, 0.1, 0.1, 1.0);
-		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		bridge->preRender();
 
@@ -342,6 +333,8 @@ int main(int argc, char* args[])
 		ambientLightColourLocation = glGetUniformLocation(currentShaderProgramID, "ambientLightColour");
 		diffuseLightColourLocation = glGetUniformLocation(currentShaderProgramID, "diffuseLightColour");
 		specularLightColourLocation = glGetUniformLocation(currentShaderProgramID, "specularLightColour");
+
+		glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, value_ptr(bridgeTransform->getModelMatrix()));
 
 		glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, value_ptr(firstPersonCamera->getViewMatrix()));
 		glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, value_ptr(firstPersonCamera->getProjectionMatrix()));
@@ -374,18 +367,10 @@ int main(int argc, char* args[])
 		SDL_GL_SwapWindow(window);
 	}
 
-	dynamicsWorld->removeRigidBody(motorcycleRigidBody);
-	dynamicsWorld->removeRigidBody(groundRigidBody);
 
-	delete motorcycleCollisionShape;
-	delete motorcycleRigidBody->getMotionState();
-	delete motorcycleRigidBody;
-
-	//delete ground
-	delete groundShape;
-	delete groundRigidBody->getMotionState();
-	delete groundRigidBody;
-
+	//detele physics objects
+	motorcyclePhysics->destroy(dynamicsWorld);
+	groundShape->destroy(dynamicsWorld);
 
 	//delete dynamics world
 	delete dynamicsWorld;
@@ -409,11 +394,11 @@ int main(int argc, char* args[])
 	glDeleteRenderbuffers(1, &depthRenderBufferID);
 	glDeleteTextures(1, &colourBufferID);
 
-	if (motorcycle)
+	if (motorcycleObject)
 	{
-		motorcycle->destroy();
-		delete motorcycle;
-		motorcycle = nullptr;
+		motorcycleObject->destroy();
+		delete motorcycleObject;
+		motorcycleObject = nullptr;
 	}
 
 	if (bridge)

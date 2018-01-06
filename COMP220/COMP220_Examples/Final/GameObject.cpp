@@ -5,11 +5,6 @@ GameObject::GameObject()
 	m_Meshes.clear();
 	m_DiffuseMapID = 0;
 
-	m_Position = glm::vec3(0.0f, 0.0f, 0.0f);
-	m_Scale = glm::vec3(1.0f, 1.0f, 1.0f);
-	m_Rotation = glm::vec3(0.0f, 0.0f, 0.0f);
-	m_ModelMatrix = glm::mat4(1.0f);
-
 	m_AmbientMaterialColour = glm::vec4(0.4f, 0.4f, 0.4f, 1.0f);
 	m_DiffuseMaterialColour = glm::vec4(0.6f, 0.6f, 0.6f, 1.0f);
 	m_SpecularMaterialColour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -56,17 +51,6 @@ void GameObject::destroy()
 	}
 }
 
-void GameObject::update()
-{
-	glm::mat4 translationMatrix = glm::translate(m_Position);
-	glm::mat4 scaleMatrix = glm::scale(m_Scale);
-	glm::mat4 rotationMatrix = glm::rotate(m_Rotation.x, glm::vec3(1.0f, 0.0f, 0.0f))*
-		glm::rotate(m_Rotation.y, glm::vec3(0.0f, 1.0f, 0.0f))*
-		glm::rotate(m_Rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
-	
-	m_ModelMatrix = translationMatrix*rotationMatrix*scaleMatrix;
-}
-
 void GameObject::preRender()
 {
 	glActiveTexture(GL_TEXTURE0);
@@ -74,7 +58,6 @@ void GameObject::preRender()
 
 	glUseProgram(m_ShaderProgramID);
 
-	GLint modelMatrixLocation = glGetUniformLocation(m_ShaderProgramID, "modelMatrix");
 	GLint textureLocation = glGetUniformLocation(m_ShaderProgramID, "baseTexture");
 
 	GLint ambientMaterialColourLocation = glGetUniformLocation(m_ShaderProgramID, "ambientMaterialColour");
@@ -82,7 +65,6 @@ void GameObject::preRender()
 	GLint specularMaterialColourLocation = glGetUniformLocation(m_ShaderProgramID, "diffuseMaterialColour");
 	GLint specularPowerLocation = glGetUniformLocation(m_ShaderProgramID, "specularPower");
 
-	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, value_ptr(m_ModelMatrix));
 	glUniform1i(textureLocation, 0);
 	glUniform4fv(ambientMaterialColourLocation, 1, value_ptr(m_AmbientMaterialColour));
 	glUniform4fv(diffuseMaterialColourLocation, 1, value_ptr(m_DiffuseMaterialColour));

@@ -69,10 +69,12 @@ int main(int argc, char* args[])
 		return 1;
 	}
 
-
+	// Lists of game objects
 	std::vector<GameObject*> gameObjectsList;
 	std::vector<GameObject*> carsList;
 
+
+	// spawn roads
 	for (int w = 0; w < 2; ++w)
 	{
 		for (int i = 0; i < 4; ++i)
@@ -88,6 +90,7 @@ int main(int argc, char* args[])
 		}
 	}
 
+	// spawn cars
 	for (int i = 0; i < 4; ++i)
 	{
 		GameObject * carObject = new GameObject();
@@ -105,6 +108,7 @@ int main(int argc, char* args[])
 		carsList.push_back(carObject);
 	}
 
+	// spaw player
 	GameObject * motorcycleObject = new GameObject();
 	motorcycleObject->getMaterial().loadMesh("motorcycle.obj");
 	motorcycleObject->getMaterial().loadDiffuseMap("motorcycle.png");
@@ -116,9 +120,15 @@ int main(int argc, char* args[])
 	motorcycleObject->getObjectTransform().setScale(0.08f, 0.08f, 0.08f);
 	motorcycleObject->setHasPhysics(true);
 
-
-	
+	// set player speed
+	vec3 playerSpeed = vec3(0.f, -1.f, 0.f);
+	// create camera
 	Camera * firstPersonCamera = new Camera();
+	// locks camera
+	bool cameraLock = true;
+
+	//for effects
+	float effectCase = 0.;
 
 	// Light
 	vec4 ambientLightColour = vec4(0.0f, 0.0f, 0.0f, 1.0f);
@@ -172,12 +182,6 @@ int main(int argc, char* args[])
 	GLuint postProcessingProgramID = LoadShaders("passThroughVert.glsl", "postTextureFrag.glsl");
 	GLint texture0Location = glGetUniformLocation(postProcessingProgramID, "texture0");
 
-	float effectCase = 0.;
-	bool cameraLock = true;
-
-	// sets frag colour
-	static const GLfloat fragColour[] = { 1.0f,1.0f,1.0f,1.0f };
-	
 	///collision configuration contains default setup for memory, collision setup. Advanced users can create their own configuration.
 	btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
 
@@ -192,14 +196,17 @@ int main(int argc, char* args[])
 
 	btDiscreteDynamicsWorld* dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
 
+	// set gravity
 	dynamicsWorld->setGravity(btVector3(0, -10, 0));
 
+	// make ground
 	PhysicsObject * groundShape = new PhysicsObject();
 	groundShape->setCollisionShape(btScalar(50000.), btScalar(2.), btScalar(50.));
 	groundShape->setObjectOrigin(0, -10, 0);
 	groundShape->makeRigidBody();
 	groundShape->addRigidBody(dynamicsWorld);
 
+	// give cars physics
 	for (GameObject * pObj : carsList)
 	{
 		pObj->getObjectPhysics().setCollisionShape(8, 2, 4);
@@ -211,6 +218,7 @@ int main(int argc, char* args[])
 		pObj->getObjectPhysics().randomiseSpeed();
 	}
 
+	// gives player physics
 	motorcycleObject->getObjectPhysics().setCollisionShape(2, 2, 2);
 	motorcycleObject->getObjectPhysics().setObjectOrigin(motorcycleObject->getObjectTransform().getPosition().x, motorcycleObject->getObjectTransform().getPosition().y, motorcycleObject->getObjectTransform().getPosition().z);
 	motorcycleObject->getObjectPhysics().setObjectMass(1.);
@@ -227,8 +235,6 @@ int main(int argc, char* args[])
 	bool running = true;
 	//SDL Event structure, this will be checked in the while loop
 	SDL_Event ev;
-
-	vec3 playerSpeed = vec3(0.f, -1.f, 0.f);
 
 	while (running)
 	{
@@ -258,6 +264,7 @@ int main(int argc, char* args[])
 					running = false;
 					break;
 
+					// Camera Controls
 				case SDLK_UP:
 					firstPersonCamera->moveCameraForward(2.f);
 					break;
@@ -271,6 +278,7 @@ int main(int argc, char* args[])
 					firstPersonCamera->moveCameraRight(5.f);
 					break;
 
+					// Motorbike controls
 				case SDLK_w:
 					if (playerSpeed.x > -300.f)
 						playerSpeed.x += -10.f;
@@ -288,10 +296,11 @@ int main(int argc, char* args[])
 						playerSpeed.z += -4.f;
 					break;
 
-				case SDLK_l:
+					//effects
+				case SDLK_SPACE:
 					effectCase = 1.;
 					break;
-				case SDLK_k:
+				case SDLK_p:
 					effectCase = 2.;
 					break;
 				case SDLK_t:
@@ -300,6 +309,7 @@ int main(int argc, char* args[])
 					motorcycleObject->getMaterial().setSpecularMaterialColour(glm::vec4(1.f, 1.f, 1.f, .1f));
 					break;
 
+					//reset
 				case SDLK_r:
 					effectCase = 0.;
 					motorcycleObject->getMaterial().setAmbientMaterialColour(glm::vec4(.4f, .4f, .4f, 1.f));
@@ -307,6 +317,7 @@ int main(int argc, char* args[])
 					motorcycleObject->getMaterial().setSpecularMaterialColour(glm::vec4(1.f, 1.f, 1.f, 1.f));
 					break;
 
+					//toggle camera lock
 				case SDLK_y:
 					if (cameraLock)
 					{
@@ -323,18 +334,21 @@ int main(int argc, char* args[])
 
 		}
 
+		// update speed and rotation of motorcycle
 		motorcycleObject->getObjectTransform().setRotation(motorcycleObject->getObjectTransform().getRotation().x, motorcycleObject->getObjectTransform().getRotation().y, playerSpeed.z/100);
 		motorcycleObject->getObjectPhysics().setObjectSpeed(playerSpeed.x, playerSpeed.y, playerSpeed.z);
 
+		// lock camera if camera lock is true
 		if (cameraLock)
 		{
 			firstPersonCamera->setCameraPoisition(motorcycleObject->getObjectTransform().getPosition().x + 15.f, motorcycleObject->getObjectTransform().getPosition().y + 10.f, motorcycleObject->getObjectTransform().getPosition().z);
 			firstPersonCamera->setCameraTarget(motorcycleObject->getObjectTransform().getPosition().x, motorcycleObject->getObjectTransform().getPosition().y, motorcycleObject->getObjectTransform().getPosition().z);
 		}
-		//updates view matrix
+
+		// update view matrix
 		firstPersonCamera->updateViewMatrix();
 
-		// Gets current tick
+		// Get current tick
 		currentTicks = SDL_GetTicks();
 
 		GLint currentTimeLocation = glGetUniformLocation(postProcessingProgramID, "time");
@@ -343,25 +357,30 @@ int main(int argc, char* args[])
 		GLint currentTestLocation = glGetUniformLocation(postProcessingProgramID, "effects");
 		glUniform1f(currentTestLocation, effectCase);
 
-
-
 		float deltaTime = (float)(currentTicks - lastTicks) / 1000.0f;
 		
+
 		for (GameObject * pObj : carsList)
 		{
+			// updates car speed
 			pObj->getObjectPhysics().setObjectSpeed(pObj->getObjectPhysics().getSpeed(), -1.f, 0.f);
+
+			// check if car has gone past player
 			if (pObj->getObjectTransform().getPosition().x - motorcycleObject->getObjectTransform().getPosition().x > 100)
 			{
+				// move car to be infront of player
 				pObj->getObjectPhysics().setTransform(motorcycleObject->getObjectTransform().getPosition().x - 300, pObj->getObjectTransform().getPosition().y, pObj->getObjectTransform().getPosition().z);
+				// change colour of car
 				pObj->getMaterial().setSpecularMaterialColour(glm::vec4(((double)rand() / (RAND_MAX + 1)), ((double)rand() / (RAND_MAX + 1)), ((double)rand() / (RAND_MAX + 1)), 1.f));
+				// give car a random speed
 				pObj->getObjectPhysics().randomiseSpeed();
 			}
 		}
 
 
-
 		for (GameObject * pObj : gameObjectsList)
 		{
+			// update location of physics objects
 			if (pObj->getHasPhysics())
 			{
 				pObj->getObjectPhysics().update(dynamicsWorld);
@@ -369,14 +388,13 @@ int main(int argc, char* args[])
 			}
 			else
 			{
+				// move road to be infront of player
 				if (pObj->getObjectTransform().getPosition().x - motorcycleObject->getObjectTransform().getPosition().x > 200)
 				{
 					pObj->getObjectTransform().setPosition(pObj->getObjectTransform().getPosition().x - 400, pObj->getObjectTransform().getPosition().y, pObj->getObjectTransform().getPosition().z);
 				}
 			}
 		}
-
-
 
 		dynamicsWorld->stepSimulation(1.f / 60.f, 10);
 
@@ -444,7 +462,7 @@ int main(int argc, char* args[])
 		SDL_GL_SwapWindow(window);
 	}
 
-	//detele physics objects NEED MORE
+	// detele physics objects
 	groundShape->destroy(dynamicsWorld);
 
 	for (GameObject * pObj : gameObjectsList)
@@ -454,7 +472,6 @@ int main(int argc, char* args[])
 			pObj->getObjectPhysics().destroy(dynamicsWorld);
 		}
 	}
-
 
 	//delete dynamics world
 	delete dynamicsWorld;

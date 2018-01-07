@@ -47,10 +47,6 @@ public:
 	   void destroy();
 	   void update();
 private:;
-
-
-	//material class
-
 	ObjectTransform * m_Transform;
 	PhysicsObject * m_Physics;
 	Material * m_Material;
@@ -58,4 +54,3 @@ private:;
 	bool m_HasPhysics;
 };
 
-// m_ = member varible

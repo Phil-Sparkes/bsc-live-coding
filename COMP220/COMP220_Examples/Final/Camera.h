@@ -18,6 +18,7 @@ public:
 
 		// Calculate camera target using CameraX and CameraY
 		m_CameraTarget = m_CameraPosition + m_CameraDistance * glm::vec3(cos(m_CameraX), tan(m_CameraY), sin(m_CameraX));
+
 		// Normalised camera direction
 		m_CameraDirection = normalize(m_CameraTarget - m_CameraPosition);
 

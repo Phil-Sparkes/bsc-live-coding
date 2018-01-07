@@ -38,8 +38,6 @@ void Mesh::copyMeshData(std::vector<Vertex>& vertices, std::vector<unsigned int>
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3 * sizeof(float)));
 
-	//glDisableVertexAttribArray(2);
-
 	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(7 * sizeof(float)));
 

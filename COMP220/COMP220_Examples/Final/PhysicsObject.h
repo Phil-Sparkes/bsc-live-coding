@@ -47,7 +47,6 @@ public:
 		m_RigidBody->setLinearVelocity(btVector3(XVal, YVal, ZVal));
 	}
 
-
 	float getSpeed()
 	{
 		return m_speed;

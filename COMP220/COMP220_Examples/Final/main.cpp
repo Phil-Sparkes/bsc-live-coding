@@ -80,7 +80,7 @@ int main(int argc, char* args[])
 		for (int i = 0; i < 4; ++i)
 		{
 			GameObject * road = new GameObject();
-			road->getMaterial().loadMesh("Road.obj");
+			road->getMaterial().loadMesh("Road.obj"); // created by poly by google https://poly.google.com/view/a38EEOJFUlp
 			road->getMaterial().loadDiffuseMap("Road.png");
 			road->getMaterial().loadShaderProgram("lightingVert.glsl", "lightingFrag.glsl");
 
@@ -94,10 +94,10 @@ int main(int argc, char* args[])
 	for (int i = 0; i < 4; ++i)
 	{
 		GameObject * carObject = new GameObject();
-		carObject->getMaterial().loadMesh("Car.obj");
+		carObject->getMaterial().loadMesh("Car.obj"); // created by poly by google https://poly.google.com/view/75h3mi6uHuC
 		carObject->getMaterial().loadDiffuseMap("Car.png");
 		carObject->getMaterial().loadShaderProgram("lightingVert.glsl", "lightingFrag.glsl");
-		
+	
 		carObject->getObjectTransform().setPosition(-80.0f, -7.0f,(i * 14.5f) - 7.0f);
 		carObject->getObjectTransform().setRotation(0.0f, 1.55f, 0.0f);
 		carObject->getObjectTransform().setScale(0.2f, 0.2f, 0.2f);
@@ -110,7 +110,7 @@ int main(int argc, char* args[])
 
 	// spaw player
 	GameObject * motorcycleObject = new GameObject();
-	motorcycleObject->getMaterial().loadMesh("motorcycle.obj");
+	motorcycleObject->getMaterial().loadMesh("motorcycle.obj"); // created by Poly by google https://poly.google.com/view/dse64pqMKAR
 	motorcycleObject->getMaterial().loadDiffuseMap("motorcycle.png");
 	motorcycleObject->getMaterial().loadShaderProgram("lightingVert.glsl", "lightingFrag.glsl");
 	gameObjectsList.push_back(motorcycleObject);

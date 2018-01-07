@@ -70,26 +70,54 @@ int main(int argc, char* args[])
 	}
 
 
+	std::vector<GameObject*> gameObjectsList;
+	std::vector<GameObject*> carsList;
+
+	for (int w = 0; w < 2; ++w)
+	{
+		for (int i = 0; i < 4; ++i)
+		{
+			GameObject * road = new GameObject();
+			road->getMaterial().loadMesh("Road.obj");
+			road->getMaterial().loadDiffuseMap("Road.png");
+			road->getMaterial().loadShaderProgram("lightingVert.glsl", "lightingFrag.glsl");
+
+			road->getObjectTransform().setPosition(i * -100.f, -10.f, w * 29.f);
+			road->getObjectTransform().setScale(.5f, .5f, .5f);
+			gameObjectsList.push_back(road);
+		}
+	}
+
+	for (int i = 0; i < 4; ++i)
+	{
+		GameObject * carObject = new GameObject();
+		carObject->getMaterial().loadMesh("Car.obj");
+		carObject->getMaterial().loadDiffuseMap("Car.png");
+		carObject->getMaterial().loadShaderProgram("lightingVert.glsl", "lightingFrag.glsl");
+		
+		carObject->getObjectTransform().setPosition(-80.0f, -7.0f,(i * 14.5f) - 7.0f);
+		carObject->getObjectTransform().setRotation(0.0f, 1.55f, 0.0f);
+		carObject->getObjectTransform().setScale(0.2f, 0.2f, 0.2f);
+		
+		carObject->setHasPhysics(true);
+
+		gameObjectsList.push_back(carObject);
+		carsList.push_back(carObject);
+	}
+
 	GameObject * motorcycleObject = new GameObject();
-	motorcycleObject->loadMesh("Motorcycle.obj");
-	motorcycleObject->loadDiffuseMap("Motorcycle.png");
-	motorcycleObject->loadShaderProgram("lightingVert.glsl", "lightingFrag.glsl");
+	motorcycleObject->getMaterial().loadMesh("motorcycle.obj");
+	motorcycleObject->getMaterial().loadDiffuseMap("motorcycle.png");
+	motorcycleObject->getMaterial().loadShaderProgram("lightingVert.glsl", "lightingFrag.glsl");
+	gameObjectsList.push_back(motorcycleObject);
+
+	motorcycleObject->getObjectTransform().setPosition(0.0f, -7.0f, 15.0f);
+	motorcycleObject->getObjectTransform().setRotation(0.0f, 1.55f, 0.0f);
+	motorcycleObject->getObjectTransform().setScale(0.08f, 0.08f, 0.08f);
+	motorcycleObject->setHasPhysics(true);
+
+
 	
-	ObjectTransform * motorcycleTransform = new ObjectTransform();
-	motorcycleTransform->setPosition(0.0f, 20.0f, 0.0f);
-	motorcycleTransform->setRotation(0.0f, 1.5f, 0.0f);
-	motorcycleTransform->setScale(0.1f, 0.1f, 0.1f);
-
-	Material * motorcycleMaterial = new Material();
-
-	GameObject * bridge = new GameObject();
-	bridge->loadMesh("WoodBridge.obj");
-	bridge->loadDiffuseMap("EnvironmentTex.png");
-	bridge->loadShaderProgram("lightingVert.glsl", "lightingFrag.glsl");
-	ObjectTransform * bridgeTransform = new ObjectTransform();
-	bridgeTransform->setPosition(0.f, -60.f, 0.f);
-	bridgeTransform->setScale(.05f, .05f, .05f);
-
 	Camera * firstPersonCamera = new Camera();
 
 	// Light
@@ -145,9 +173,7 @@ int main(int argc, char* args[])
 	GLint texture0Location = glGetUniformLocation(postProcessingProgramID, "texture0");
 
 	float effectCase = 0.;
-
-	// Create and compile our GLSL program from the shaders
-	//GLint programID = LoadShaders("lightingVert.glsl", "lightingFrag.glsl");
+	bool cameraLock = true;
 
 	// sets frag colour
 	static const GLfloat fragColour[] = { 1.0f,1.0f,1.0f,1.0f };
@@ -169,22 +195,27 @@ int main(int argc, char* args[])
 	dynamicsWorld->setGravity(btVector3(0, -10, 0));
 
 	PhysicsObject * groundShape = new PhysicsObject();
-	groundShape->setCollisionShape(btScalar(50.), btScalar(2.), btScalar(50.));
-	groundShape->setObjectOrigin(0, -51, 0);
-
+	groundShape->setCollisionShape(btScalar(50000.), btScalar(2.), btScalar(50.));
+	groundShape->setObjectOrigin(0, -10, 0);
 	groundShape->makeRigidBody();
-
 	groundShape->addRigidBody(dynamicsWorld);
 
-	PhysicsObject * motorcyclePhysics = new PhysicsObject();
-	motorcyclePhysics->setCollisionShape(2, 2, 2);
-	motorcyclePhysics->setObjectOrigin(motorcycleTransform->getPosition().x, motorcycleTransform->getPosition().y, motorcycleTransform->getPosition().z);
-	motorcyclePhysics->setObjectMass(1.);
+	for (GameObject * pObj : carsList)
+	{
+		pObj->getObjectPhysics().setCollisionShape(8, 2, 4);
+		pObj->getObjectPhysics().setObjectOrigin(pObj->getObjectTransform().getPosition().x, pObj->getObjectTransform().getPosition().y, pObj->getObjectTransform().getPosition().z);
+		pObj->getObjectPhysics().setObjectMass(1.);
 
-	motorcyclePhysics->makeRigidBody();
+		pObj->getObjectPhysics().makeRigidBody();
+		pObj->getObjectPhysics().addRigidBody(dynamicsWorld);
+		pObj->getObjectPhysics().randomiseSpeed();
+	}
 
-	motorcyclePhysics->addRigidBody(dynamicsWorld);
-
+	motorcycleObject->getObjectPhysics().setCollisionShape(2, 2, 2);
+	motorcycleObject->getObjectPhysics().setObjectOrigin(motorcycleObject->getObjectTransform().getPosition().x, motorcycleObject->getObjectTransform().getPosition().y, motorcycleObject->getObjectTransform().getPosition().z);
+	motorcycleObject->getObjectPhysics().setObjectMass(1.);
+	motorcycleObject->getObjectPhysics().makeRigidBody();
+	motorcycleObject->getObjectPhysics().addRigidBody(dynamicsWorld);
 
 	glEnable(GL_DEPTH_TEST);
 	int lastTicks = SDL_GetTicks();
@@ -197,6 +228,7 @@ int main(int argc, char* args[])
 	//SDL Event structure, this will be checked in the while loop
 	SDL_Event ev;
 
+	vec3 playerSpeed = vec3(0.f, -1.f, 0.f);
 
 	while (running)
 	{
@@ -226,21 +258,36 @@ int main(int argc, char* args[])
 					running = false;
 					break;
 
+				case SDLK_UP:
+					firstPersonCamera->moveCameraForward(2.f);
+					break;
+				case SDLK_DOWN:
+					firstPersonCamera->moveCameraForward(-2.f);
+					break;
+				case SDLK_LEFT:
+					firstPersonCamera->moveCameraRight(-5.f);
+					break;
+				case SDLK_RIGHT:
+					firstPersonCamera->moveCameraRight(5.f);
+					break;
+
 				case SDLK_w:
-					firstPersonCamera->moveCameraForward(0.2f);
+					if (playerSpeed.x > -300.f)
+						playerSpeed.x += -10.f;
 					break;
 				case SDLK_s:
-					firstPersonCamera->moveCameraForward(-0.2f);
+					if (playerSpeed.x < 30.f)
+						playerSpeed.x += 4.f;
 					break;
 				case SDLK_a:
-					firstPersonCamera->moveCameraRight(-0.5f);
+					if (playerSpeed.z < 60.f)
+						playerSpeed.z += 4.f;
 					break;
 				case SDLK_d:
-					firstPersonCamera->moveCameraRight(0.5f);
+					if (playerSpeed.z > -60.f)
+						playerSpeed.z += -4.f;
 					break;
-				case SDLK_p:
-					motorcyclePhysics->applyCentralImpulse(0.f, 10.f, 0.f);
-					break;
+
 				case SDLK_l:
 					effectCase = 1.;
 					break;
@@ -248,21 +295,41 @@ int main(int argc, char* args[])
 					effectCase = 2.;
 					break;
 				case SDLK_t:
-					motorcycleObject->setAmbientMaterialColour(glm::vec4(.4f, .4f, .4f, .1f));
-					motorcycleObject->setDiffuseMaterialColour(glm::vec4(.6f, .6f, .6f, .1f));
-					motorcycleObject->setSpecularMaterialColour(glm::vec4(1.f, 1.f, 1.f, .1f));
+					motorcycleObject->getMaterial().setAmbientMaterialColour(glm::vec4(.4f, .4f, .4f, .1f));
+					motorcycleObject->getMaterial().setDiffuseMaterialColour(glm::vec4(.6f, .6f, .6f, .1f));
+					motorcycleObject->getMaterial().setSpecularMaterialColour(glm::vec4(1.f, 1.f, 1.f, .1f));
 					break;
 
 				case SDLK_r:
 					effectCase = 0.;
-					motorcycleObject->setAmbientMaterialColour(glm::vec4(.4f, .4f, .4f, 1.f));
-					motorcycleObject->setDiffuseMaterialColour(glm::vec4(.6f, .6f, .6f, 1.f));
-					motorcycleObject->setSpecularMaterialColour(glm::vec4(1.f, 1.f, 1.f, 1.f));
+					motorcycleObject->getMaterial().setAmbientMaterialColour(glm::vec4(.4f, .4f, .4f, 1.f));
+					motorcycleObject->getMaterial().setDiffuseMaterialColour(glm::vec4(.6f, .6f, .6f, 1.f));
+					motorcycleObject->getMaterial().setSpecularMaterialColour(glm::vec4(1.f, 1.f, 1.f, 1.f));
+					break;
+
+				case SDLK_y:
+					if (cameraLock)
+					{
+						cameraLock = false;
+					}
+					else
+					{
+						cameraLock = true;
+					}
 					break;
 				}
 
 			}
 
+		}
+
+		motorcycleObject->getObjectTransform().setRotation(motorcycleObject->getObjectTransform().getRotation().x, motorcycleObject->getObjectTransform().getRotation().y, playerSpeed.z/100);
+		motorcycleObject->getObjectPhysics().setObjectSpeed(playerSpeed.x, playerSpeed.y, playerSpeed.z);
+
+		if (cameraLock)
+		{
+			firstPersonCamera->setCameraPoisition(motorcycleObject->getObjectTransform().getPosition().x + 15.f, motorcycleObject->getObjectTransform().getPosition().y + 10.f, motorcycleObject->getObjectTransform().getPosition().z);
+			firstPersonCamera->setCameraTarget(motorcycleObject->getObjectTransform().getPosition().x, motorcycleObject->getObjectTransform().getPosition().y, motorcycleObject->getObjectTransform().getPosition().z);
 		}
 		//updates view matrix
 		firstPersonCamera->updateViewMatrix();
@@ -277,18 +344,47 @@ int main(int argc, char* args[])
 		glUniform1f(currentTestLocation, effectCase);
 
 
-		float deltaTime = (float)(currentTicks - lastTicks) / 1000.0f;
 
-		motorcyclePhysics->update(dynamicsWorld);
+		float deltaTime = (float)(currentTicks - lastTicks) / 1000.0f;
+		
+		for (GameObject * pObj : carsList)
+		{
+			pObj->getObjectPhysics().setObjectSpeed(pObj->getObjectPhysics().getSpeed(), -1.f, 0.f);
+			if (pObj->getObjectTransform().getPosition().x - motorcycleObject->getObjectTransform().getPosition().x > 100)
+			{
+				pObj->getObjectPhysics().setTransform(motorcycleObject->getObjectTransform().getPosition().x - 300, pObj->getObjectTransform().getPosition().y, pObj->getObjectTransform().getPosition().z);
+				pObj->getMaterial().setSpecularMaterialColour(glm::vec4(((double)rand() / (RAND_MAX + 1)), ((double)rand() / (RAND_MAX + 1)), ((double)rand() / (RAND_MAX + 1)), 1.f));
+				pObj->getObjectPhysics().randomiseSpeed();
+			}
+		}
+
+
+
+		for (GameObject * pObj : gameObjectsList)
+		{
+			if (pObj->getHasPhysics())
+			{
+				pObj->getObjectPhysics().update(dynamicsWorld);
+				pObj->getObjectTransform().setPosition(pObj->getObjectPhysics().getObjectOrigin().getX(), pObj->getObjectPhysics().getObjectOrigin().getY(), pObj->getObjectPhysics().getObjectOrigin().getZ());
+			}
+			else
+			{
+				if (pObj->getObjectTransform().getPosition().x - motorcycleObject->getObjectTransform().getPosition().x > 200)
+				{
+					pObj->getObjectTransform().setPosition(pObj->getObjectTransform().getPosition().x - 400, pObj->getObjectTransform().getPosition().y, pObj->getObjectTransform().getPosition().z);
+				}
+			}
+		}
+
+
 
 		dynamicsWorld->stepSimulation(1.f / 60.f, 10);
 
-		motorcycleTransform->setPosition(motorcyclePhysics->getObjectOrigin().getX(), motorcyclePhysics->getObjectOrigin().getY(), motorcyclePhysics->getObjectOrigin().getZ());
+		for (GameObject * pObj : gameObjectsList)
+		{
+			pObj->getObjectTransform().update();
 
-		motorcycleTransform->update();
-
-		bridgeTransform->update();
-
+		}
 		glEnable(GL_BLEND);  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glBindFramebuffer(GL_FRAMEBUFFER, frameBufferID);
 
@@ -296,68 +392,37 @@ int main(int argc, char* args[])
 		glClearColor(0.1, 0.1, 0.1, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		bridge->preRender();
+		for (GameObject * pObj : gameObjectsList)
+		{
+			pObj->getMaterial().preRender();
+			GLint currentShaderProgramID = pObj->getMaterial().getShaderProgramID();
 
-		GLint currentShaderProgramID = bridge->getShaderProgramID();
+			GLint viewMatrixLocation = glGetUniformLocation(currentShaderProgramID, "viewMatrix");
+			GLint projectionMatrixLocation = glGetUniformLocation(currentShaderProgramID, "projectionMatrix");
+			GLint camerPositionLocation = glGetUniformLocation(currentShaderProgramID, "cameraPosition");
 
-		GLint viewMatrixLocation = glGetUniformLocation(currentShaderProgramID, "viewMatrix");
-		GLint projectionMatrixLocation = glGetUniformLocation(currentShaderProgramID, "projectionMatrix");
-		GLint camerPositionLocation = glGetUniformLocation(currentShaderProgramID, "cameraPosition");
+			GLint lightDirectionLocation = glGetUniformLocation(currentShaderProgramID, "lightDirection");
+			GLint ambientLightColourLocation = glGetUniformLocation(currentShaderProgramID, "ambientLightColour");
+			GLint diffuseLightColourLocation = glGetUniformLocation(currentShaderProgramID, "diffuseLightColour");
+			GLint specularLightColourLocation = glGetUniformLocation(currentShaderProgramID, "specularLightColour");
 
-		GLint lightDirectionLocation = glGetUniformLocation(currentShaderProgramID, "lightDirection");
-		GLint ambientLightColourLocation = glGetUniformLocation(currentShaderProgramID, "ambientLightColour");
-		GLint diffuseLightColourLocation = glGetUniformLocation(currentShaderProgramID, "diffuseLightColour");
-		GLint specularLightColourLocation = glGetUniformLocation(currentShaderProgramID, "specularLightColour");
+			GLint modelMatrixLocation = glGetUniformLocation(currentShaderProgramID, "modelMatrix");
+			
+			glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, value_ptr(pObj->getObjectTransform().getModelMatrix()));
 
-		GLint modelMatrixLocation = glGetUniformLocation(currentShaderProgramID, "modelMatrix");
-	
-		glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, value_ptr(bridgeTransform->getModelMatrix()));
+			glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, value_ptr(firstPersonCamera->getViewMatrix()));
+			glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, value_ptr(firstPersonCamera->getProjectionMatrix()));
+			glUniform3fv(camerPositionLocation, 1, value_ptr(firstPersonCamera->getCameraPosition()));
 
+			glUniform3fv(lightDirectionLocation, 1, value_ptr(lightDirection));
+			glUniform4fv(ambientLightColourLocation, 1, value_ptr(ambientLightColour));
+			glUniform4fv(diffuseLightColourLocation, 1, value_ptr(diffuseLightColour));
+			glUniform4fv(specularLightColourLocation, 1, value_ptr(specularLightColour));
 
-		glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, value_ptr(firstPersonCamera->getViewMatrix()));
-		glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, value_ptr(firstPersonCamera->getProjectionMatrix()));
-		glUniform3fv(camerPositionLocation, 1, value_ptr(firstPersonCamera->getCameraPosition()));
-
-		glUniform3fv(lightDirectionLocation, 1, value_ptr(lightDirection));
-		glUniform4fv(ambientLightColourLocation, 1, value_ptr(ambientLightColour));
-		glUniform4fv(diffuseLightColourLocation, 1, value_ptr(diffuseLightColour));
-		glUniform4fv(specularLightColourLocation, 1, value_ptr(specularLightColour));
+			pObj->getMaterial().render();
+		}
 
 
-		bridge->render();
-
-		glEnable(GL_BLEND);
-		glBindFramebuffer(GL_FRAMEBUFFER, frameBufferID);
-
-		motorcycleObject->preRender();
-		//motorcycleMaterial->render();
-
-		currentShaderProgramID = motorcycleObject->getShaderProgramID();
-
-		viewMatrixLocation = glGetUniformLocation(currentShaderProgramID, "viewMatrix");
-		projectionMatrixLocation = glGetUniformLocation(currentShaderProgramID, "projectionMatrix");
-		camerPositionLocation = glGetUniformLocation(currentShaderProgramID, "cameraPosition");
-
-		lightDirectionLocation = glGetUniformLocation(currentShaderProgramID, "lightDirection");
-		ambientLightColourLocation = glGetUniformLocation(currentShaderProgramID, "ambientLightColour");
-		diffuseLightColourLocation = glGetUniformLocation(currentShaderProgramID, "diffuseLightColour");
-		specularLightColourLocation = glGetUniformLocation(currentShaderProgramID, "specularLightColour");
-
-		modelMatrixLocation = glGetUniformLocation(currentShaderProgramID, "modelMatrix");
-
-		glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, value_ptr(motorcycleTransform->getModelMatrix()));
-
-		glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, value_ptr(firstPersonCamera->getViewMatrix()));
-
-		glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, value_ptr(firstPersonCamera->getProjectionMatrix()));
-		glUniform3fv(camerPositionLocation, 1, value_ptr(firstPersonCamera->getCameraPosition()));
-
-		glUniform3fv(lightDirectionLocation, 1, value_ptr(lightDirection));
-		glUniform4fv(ambientLightColourLocation, 1, value_ptr(ambientLightColour));
-		glUniform4fv(diffuseLightColourLocation, 1, value_ptr(diffuseLightColour));
-		glUniform4fv(specularLightColourLocation, 1, value_ptr(specularLightColour));
-
-		motorcycleObject->render();
 		
 		glDisable(GL_BLEND);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -379,10 +444,17 @@ int main(int argc, char* args[])
 		SDL_GL_SwapWindow(window);
 	}
 
-
-	//detele physics objects
-	motorcyclePhysics->destroy(dynamicsWorld);
+	//detele physics objects NEED MORE
 	groundShape->destroy(dynamicsWorld);
+
+	for (GameObject * pObj : gameObjectsList)
+	{
+		if (pObj->getHasPhysics())
+		{
+			pObj->getObjectPhysics().destroy(dynamicsWorld);
+		}
+	}
+
 
 	//delete dynamics world
 	delete dynamicsWorld;
@@ -398,6 +470,16 @@ int main(int argc, char* args[])
 
 	delete collisionConfiguration;
 
+	auto GameObjectIter = gameObjectsList.begin();
+	while (GameObjectIter != gameObjectsList.end())
+	{
+		if ((*GameObjectIter))
+		{
+			(*GameObjectIter)->destroy();
+			delete (*GameObjectIter);
+			GameObjectIter = gameObjectsList.erase(GameObjectIter);
+		}
+	}
 
 	glDeleteProgram(postProcessingProgramID);
 	glDeleteVertexArrays(1, &screenVAO);
@@ -406,19 +488,6 @@ int main(int argc, char* args[])
 	glDeleteRenderbuffers(1, &depthRenderBufferID);
 	glDeleteTextures(1, &colourBufferID);
 
-	if (motorcycleObject)
-	{
-		motorcycleObject->destroy();
-		delete motorcycleObject;
-		motorcycleObject = nullptr;
-	}
-
-	if (bridge)
-	{
-		bridge->destroy();
-		delete bridge;
-		bridge = nullptr;
-	}
 
 	//Delete Context
 	SDL_GL_DeleteContext(gl_Context);

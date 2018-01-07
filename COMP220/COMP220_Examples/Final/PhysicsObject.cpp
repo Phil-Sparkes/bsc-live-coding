@@ -8,12 +8,19 @@ PhysicsObject::PhysicsObject()
 
 	m_Inertia = btVector3(0, 0, 0);
 	m_Mass = btScalar(0.f);
+
+	m_speed = 0.1f;
 }
 
 PhysicsObject::~PhysicsObject()
 {
 }
 
+
+void PhysicsObject::randomiseSpeed()
+{
+	m_speed = float(((double)rand() / (RAND_MAX + 1) * 50.f) + 50.f);
+}
 
 void PhysicsObject::makeRigidBody()
 {
@@ -29,8 +36,10 @@ void PhysicsObject::update(btDiscreteDynamicsWorld* world)
 {
 
 	m_Transform = m_RigidBody->getWorldTransform();
-
 }
+
+	
+
 
 void PhysicsObject::destroy(btDiscreteDynamicsWorld* world)
 {
@@ -39,4 +48,9 @@ void PhysicsObject::destroy(btDiscreteDynamicsWorld* world)
 	delete m_CollisionShape;
 	delete m_RigidBody->getMotionState();
 	delete m_RigidBody;
+}
+
+void PhysicsObject::setTransform(float XVal, float YVal, float ZVal)
+{
+	m_RigidBody->getWorldTransform().setOrigin(btVector3(XVal, YVal, ZVal));
 }

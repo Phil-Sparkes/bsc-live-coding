@@ -12,7 +12,6 @@ ObjectTransform::~ObjectTransform()
 {
 }
 
-
 void ObjectTransform::update()
 {
 	glm::mat4 translationMatrix = glm::translate(m_Position);

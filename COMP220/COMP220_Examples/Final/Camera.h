@@ -13,65 +13,72 @@ public:
 
 	void setRotation(float xMove, float yMove)
 	{
-		CameraX += xMove / 200.0f;
-		CameraY -= yMove / 200.0f;
+		m_CameraX += xMove / 200.0f;
+		m_CameraY -= yMove / 200.0f;
 
 		// Calculate camera target using CameraX and CameraY
-		cameraTarget = cameraPosition + CameraDistance * glm::vec3(cos(CameraX), tan(CameraY), sin(CameraX));
+		m_CameraTarget = m_CameraPosition + m_CameraDistance * glm::vec3(cos(m_CameraX), tan(m_CameraY), sin(m_CameraX));
 		// Normalised camera direction
-		cameraDirection = normalize(cameraTarget - cameraPosition);
+		m_CameraDirection = normalize(m_CameraTarget - m_CameraPosition);
 
 	};
 
 	void moveCameraForward(float change)
 	{
-		FPScameraPos = cameraDirection * change;
+		m_FPScameraPos = m_CameraDirection * change;
 		update();
 	}
 
 	void moveCameraRight(float change)
 	{
-		FPScameraPos = cross(cameraDirection, cameraUp) * change;
+		m_FPScameraPos = cross(m_CameraDirection, m_CameraUp) * change;
 		update();
 	}
 
 	void update()
 	{
-		cameraPosition += FPScameraPos;
-		cameraTarget += FPScameraPos;
+		m_CameraPosition += m_FPScameraPos;
+		m_CameraTarget += m_FPScameraPos;
 	}
 
 	void updateViewMatrix()
 	{
-		viewMatrix = lookAt(cameraPosition, cameraTarget, cameraUp);
+		m_ViewMatrix = lookAt(m_CameraPosition, m_CameraTarget, m_CameraUp);
 	}
 	glm::mat4& getViewMatrix()
 	{
-		return viewMatrix;
+		return m_ViewMatrix;
 	}
 	glm::mat4& getProjectionMatrix()
 	{
-		return projectionMatrix;
+		return m_ProjectionMatrix;
+	}
+	void setCameraPoisition(float XVal, float YVal, float ZVal)
+	{
+		m_CameraPosition = glm::vec3(XVal, YVal, ZVal);
 	}
 	glm::vec3& getCameraPosition()
 	{
-		return cameraPosition;
+		return m_CameraPosition;
+	}
+	void setCameraTarget(float XVal, float YVal, float ZVal)
+	{
+		m_CameraTarget = glm::vec3(XVal, YVal, ZVal);
 	}
 
 
 private:;
-		// Camera set up
-		glm::vec3 cameraPosition;
-		glm::vec3 cameraTarget;
-		glm::vec3 cameraUp;
-		glm::vec3 cameraDirection;
+		glm::vec3 m_CameraPosition;
+		glm::vec3 m_CameraTarget;
+		glm::vec3 m_CameraUp;
+		glm::vec3 m_CameraDirection;
 
-		float CameraX = 0.0f;
-		float CameraY = 0.0f;
-		float CameraDistance = (float)(cameraTarget - cameraPosition).length();
+		float m_CameraX;
+		float m_CameraY;
+		float m_CameraDistance;
 		
-		glm::vec3 FPScameraPos;
-		glm::mat4 viewMatrix;
-		glm::mat4 projectionMatrix;
+		glm::vec3 m_FPScameraPos;
+		glm::mat4 m_ViewMatrix;
+		glm::mat4 m_ProjectionMatrix;
 
 };

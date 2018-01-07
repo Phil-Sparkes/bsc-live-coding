@@ -39,17 +39,25 @@ public:
 	{
 		world->addRigidBody(m_RigidBody);
 	}
+	
 
-	void applyCentralImpulse(float XVal, float YVal, float ZVal)
+	void setObjectSpeed(float XVal, float YVal, float ZVal)
 	{
 		m_RigidBody->activate();
-		m_RigidBody->applyCentralImpulse(btVector3(XVal, YVal, ZVal));
+		m_RigidBody->setLinearVelocity(btVector3(XVal, YVal, ZVal));
 	}
 
+
+	float getSpeed()
+	{
+		return m_speed;
+	}
+
+	void randomiseSpeed();
 	void makeRigidBody();
 	void update(btDiscreteDynamicsWorld*);
 	void destroy(btDiscreteDynamicsWorld*);
-
+	void setTransform(float XVal, float YVal, float ZVal);
 private:;
 		btCollisionShape* m_CollisionShape;
 		btTransform m_Transform;
@@ -57,5 +65,5 @@ private:;
 		btScalar m_Mass;
 		btDefaultMotionState* m_MotionState;
 		btRigidBody* m_RigidBody;
-
+		float m_speed;
 };

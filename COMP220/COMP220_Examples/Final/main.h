@@ -15,6 +15,7 @@
 #include "GameObject.h"
 #include "ObjectTransform.h"
 #include "PhysicsObject.h"
+#include "Material.h"
 #include "Camera.h"
 
 #include "btBulletDynamicsCommon.h"

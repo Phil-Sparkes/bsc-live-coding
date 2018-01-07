@@ -1,8 +1,10 @@
 #pragma once
 
 #include <glm\glm.hpp>
+#include <glm\gtc\type_ptr.hpp>
 
 #include "Shader.h"
+
 
 class Material
 {
@@ -36,6 +38,8 @@ public:
 	{
 		return m_SpecularMaterialColour;
 	};
+
+	void render();
 
 private:;
 GLuint m_DiffuseMapID;

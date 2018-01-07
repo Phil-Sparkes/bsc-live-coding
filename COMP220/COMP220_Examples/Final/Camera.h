@@ -16,7 +16,6 @@ public:
 		CameraX += xMove / 200.0f;
 		CameraY -= yMove / 200.0f;
 
-		if (CameraY > 150.0f) CameraY = 150.0f; else if (CameraY < -150.0f) CameraY = -150.0f;
 		// Calculate camera target using CameraX and CameraY
 		cameraTarget = cameraPosition + CameraDistance * glm::vec3(cos(CameraX), tan(CameraY), sin(CameraX));
 		// Normalised camera direction

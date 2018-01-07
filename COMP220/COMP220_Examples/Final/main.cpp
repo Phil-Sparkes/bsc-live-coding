@@ -74,12 +74,13 @@ int main(int argc, char* args[])
 	motorcycleObject->loadMesh("Motorcycle.obj");
 	motorcycleObject->loadDiffuseMap("Motorcycle.png");
 	motorcycleObject->loadShaderProgram("lightingVert.glsl", "lightingFrag.glsl");
+	
 	ObjectTransform * motorcycleTransform = new ObjectTransform();
 	motorcycleTransform->setPosition(0.0f, 20.0f, 0.0f);
 	motorcycleTransform->setRotation(0.0f, 1.5f, 0.0f);
 	motorcycleTransform->setScale(0.1f, 0.1f, 0.1f);
 
-
+	Material * motorcycleMaterial = new Material();
 
 	GameObject * bridge = new GameObject();
 	bridge->loadMesh("WoodBridge.obj");
@@ -96,12 +97,6 @@ int main(int argc, char* args[])
 	vec3 lightDirection = vec3(0.5f, .7f, 0.0f);
 	vec4 diffuseLightColour = vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	vec4 specularLightColour = vec4(1.0f, 1.0f, 1.0f, 1.0f);
-
-	// Material
-	/*vec4 ambientMaterialColour = vec4(0.05f, 0.05f, 0.05f, 1.0f);
-	vec4 diffuseMaterialColour = vec4(0.6f, 0.6f, 0.6f, 1.0f);
-	vec4 specularMaterialColour = vec4(1.0f, 1.0f, 1.0f, 1.0f);
-	float specularPower = 25.0f;*/
 
 	// Colour Buffer Texture
 	GLuint colourBufferID = createTexture(800, 800);
@@ -190,6 +185,7 @@ int main(int argc, char* args[])
 
 	motorcyclePhysics->addRigidBody(dynamicsWorld);
 
+
 	glEnable(GL_DEPTH_TEST);
 	int lastTicks = SDL_GetTicks();
 	int currentTicks = SDL_GetTicks();
@@ -244,19 +240,24 @@ int main(int argc, char* args[])
 					break;
 				case SDLK_p:
 					motorcyclePhysics->applyCentralImpulse(0.f, 10.f, 0.f);
-					printf("1");
 					break;
 				case SDLK_l:
-					if (effectCase == 1.)
-						effectCase = 0.;
-					else
-						effectCase = 1.;
+					effectCase = 1.;
 					break;
 				case SDLK_k:
-					if (effectCase == 2.)
-						effectCase = 0.;
-					else
-						effectCase = 2.;
+					effectCase = 2.;
+					break;
+				case SDLK_t:
+					motorcycleObject->setAmbientMaterialColour(glm::vec4(.4f, .4f, .4f, .1f));
+					motorcycleObject->setDiffuseMaterialColour(glm::vec4(.6f, .6f, .6f, .1f));
+					motorcycleObject->setSpecularMaterialColour(glm::vec4(1.f, 1.f, 1.f, .1f));
+					break;
+
+				case SDLK_r:
+					effectCase = 0.;
+					motorcycleObject->setAmbientMaterialColour(glm::vec4(.4f, .4f, .4f, 1.f));
+					motorcycleObject->setDiffuseMaterialColour(glm::vec4(.6f, .6f, .6f, 1.f));
+					motorcycleObject->setSpecularMaterialColour(glm::vec4(1.f, 1.f, 1.f, 1.f));
 					break;
 				}
 
@@ -284,19 +285,20 @@ int main(int argc, char* args[])
 
 		motorcycleTransform->setPosition(motorcyclePhysics->getObjectOrigin().getX(), motorcyclePhysics->getObjectOrigin().getY(), motorcyclePhysics->getObjectOrigin().getZ());
 
-
 		motorcycleTransform->update();
 
-		glEnable(GL_DEPTH_TEST);
+		bridgeTransform->update();
+
+		glEnable(GL_BLEND);  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glBindFramebuffer(GL_FRAMEBUFFER, frameBufferID);
 
 		//Update Game and Draw with OpenGL!
 		glClearColor(0.1, 0.1, 0.1, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		motorcycleObject->preRender();
+		bridge->preRender();
 
-		GLuint currentShaderProgramID = motorcycleObject->getShaderProgramID();
+		GLint currentShaderProgramID = bridge->getShaderProgramID();
 
 		GLint viewMatrixLocation = glGetUniformLocation(currentShaderProgramID, "viewMatrix");
 		GLint projectionMatrixLocation = glGetUniformLocation(currentShaderProgramID, "projectionMatrix");
@@ -307,9 +309,9 @@ int main(int argc, char* args[])
 		GLint diffuseLightColourLocation = glGetUniformLocation(currentShaderProgramID, "diffuseLightColour");
 		GLint specularLightColourLocation = glGetUniformLocation(currentShaderProgramID, "specularLightColour");
 
-
 		GLint modelMatrixLocation = glGetUniformLocation(currentShaderProgramID, "modelMatrix");
-		glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, value_ptr(motorcycleTransform->getModelMatrix()));
+	
+		glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, value_ptr(bridgeTransform->getModelMatrix()));
 
 
 		glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, value_ptr(firstPersonCamera->getViewMatrix()));
@@ -321,16 +323,16 @@ int main(int argc, char* args[])
 		glUniform4fv(diffuseLightColourLocation, 1, value_ptr(diffuseLightColour));
 		glUniform4fv(specularLightColourLocation, 1, value_ptr(specularLightColour));
 
-		motorcycleObject->render();
 
-		bridgeTransform->update();
+		bridge->render();
 
-		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_BLEND);
 		glBindFramebuffer(GL_FRAMEBUFFER, frameBufferID);
 
-		bridge->preRender();
+		motorcycleObject->preRender();
+		//motorcycleMaterial->render();
 
-		currentShaderProgramID = bridge->getShaderProgramID();
+		currentShaderProgramID = motorcycleObject->getShaderProgramID();
 
 		viewMatrixLocation = glGetUniformLocation(currentShaderProgramID, "viewMatrix");
 		projectionMatrixLocation = glGetUniformLocation(currentShaderProgramID, "projectionMatrix");
@@ -341,9 +343,12 @@ int main(int argc, char* args[])
 		diffuseLightColourLocation = glGetUniformLocation(currentShaderProgramID, "diffuseLightColour");
 		specularLightColourLocation = glGetUniformLocation(currentShaderProgramID, "specularLightColour");
 
-		glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, value_ptr(bridgeTransform->getModelMatrix()));
+		modelMatrixLocation = glGetUniformLocation(currentShaderProgramID, "modelMatrix");
+
+		glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, value_ptr(motorcycleTransform->getModelMatrix()));
 
 		glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, value_ptr(firstPersonCamera->getViewMatrix()));
+
 		glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, value_ptr(firstPersonCamera->getProjectionMatrix()));
 		glUniform3fv(camerPositionLocation, 1, value_ptr(firstPersonCamera->getCameraPosition()));
 
@@ -352,9 +357,9 @@ int main(int argc, char* args[])
 		glUniform4fv(diffuseLightColourLocation, 1, value_ptr(diffuseLightColour));
 		glUniform4fv(specularLightColourLocation, 1, value_ptr(specularLightColour));
 
-		bridge->render();
+		motorcycleObject->render();
 		
-		glDisable(GL_DEPTH_TEST);
+		glDisable(GL_BLEND);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glClearColor(0.1, 0.2, 0.1, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

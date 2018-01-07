@@ -57,6 +57,7 @@ public:
 	   {
 		   return m_ShaderProgramID;
 	   }
+	   
 
 	   void loadMesh(const std::string& filename);
 
@@ -80,7 +81,6 @@ private:;
 	glm::vec4 m_SpecularMaterialColour;
 	float m_SpecularPower;
 	GLint m_ShaderProgramID;
-
 };
 
 // m_ = member varible

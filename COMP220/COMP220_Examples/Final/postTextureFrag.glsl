@@ -53,7 +53,7 @@ void main()
 	if (effects == 2.)
 	{
 		vec4 textureColour=texture(texture0,(textureCoordsOut - 100000.));
-		if (Pixelise(textureColour.rgb) == 0)
+		if (Pixelise(textureColour.rgb) == 1)
 		{
 		colour = blackColour - colour;
 		}

@@ -132,7 +132,7 @@ int main(int argc, char* args[])
 
 	// Light
 	vec4 ambientLightColour = vec4(0.0f, 0.0f, 0.0f, 1.0f);
-	vec3 lightDirection = vec3(0.5f, .7f, 0.0f);
+	vec3 lightDirection = vec3(-0.4f, 0.7f, 1.0f);
 	vec4 diffuseLightColour = vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	vec4 specularLightColour = vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
